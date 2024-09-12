@@ -1,0 +1,172 @@
+/* _________________________________________________
+
+For:
+Original Author:
+URL:
+
+Thanks to: Ethan Marcotte, HTML5BoilorPlate.com & 320andUp
+____________________________________________________
+
+`GLOSSARY`:
+
+  NORMALIZE (instead of reset)
+
+  ROOT
+  TYPOGRAPHY
+  BASE STYLES
+    -LINKS
+    -FIGURES & IMAGES
+    -TABLES
+    -FORMS
+  STRUCTURE
+    -HEADER
+    -FOOTER
+    -MAIN STRUCTURE
+  GENERAL CONTENT
+  ...
+  MEDIA QUERIES
+  UTILITY CLASSES
+  PRINT QUERIES
+
+`COLOURS`:
+  colorname : #value ;
+
+____________________________________________________ */
+
+
+/*  `ROOT`
+------------------------------------------------------------------*/
+
+html {}
+body {}
+
+
+/*  `TYPOGRAPHY` (Base)
+------------------------------------------------------------------*/
+
+body {
+  color: ;
+  /*font: ;*/
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  /* shared typographic styles */
+}
+h1 {
+  font-size: ;
+}
+h2 {
+  font-size: ;
+}
+h3 {
+  font-size: ;
+}
+h4 {
+  font-size: ;
+}
+h5 {
+  font-size: ;
+}
+h6 {
+  font-size: ;
+}
+
+p,
+ol,
+ul,
+dl,
+address {
+
+}
+ul,
+ol {
+
+}
+ul {}
+ol {}
+li ul,
+li ol {
+  font-size: ;
+  margin: ;
+}
+
+dl,
+dd {}
+dt {}
+
+blockquote  {}
+
+b,
+strong  {}
+i,
+em {}
+
+sup,
+sub {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+}
+sup {
+  top: -.5em;
+}
+sub {
+  bottom: -.25em;
+}
+
+address {}
+
+pre {
+  white-space: pre;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+pre,
+code {
+  font: .875em 'andale mono', 'lucida console', monospace;
+  line-height: 1.5;
+}
+
+small {
+  font-size: ;}
+
+
+/*  `BASE STYLES`
+------------------------------------------------------------------*/
+
+/*-- ~LINKS --*/
+
+/*-- ~FIGURES & IMAGES --*/
+
+/*-- ~TABLES --*/
+
+/*-- ~FORMS --*/
+
+
+/*  `HEADER`
+------------------------------------------------------------------*/
+
+
+/*  `FOOTER`
+------------------------------------------------------------------*/
+
+
+/*  `MAIN STRUCTURE`
+------------------------------------------------------------------*/
+
+
+/*  `GENERAL CONTENT`
+------------------------------------------------------------------*/
+
+
+/*  `SPECIFIC PAGE`
+------------------------------------------------------------------*/
+
+
+/*  `UTILITY STYLES`
+------------------------------------------------------------------*/
