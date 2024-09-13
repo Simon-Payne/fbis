@@ -56,7 +56,7 @@ class LocalFileBodsServiceHelperTest {
 
     @Test
     void shouldRejectValidRouteWithMissingRouteFile() throws IOException, URISyntaxException {
-        when(properties.getLineRefs()).thenReturn(List.of("3"));
+        when(properties.getLineRefs()).thenReturn("3");
         when(properties.getRouteFileFolder()).thenReturn("routes");
         when(busRouteReader.readBusRouteFromCsvFile(any(Path.class)))
                 .thenThrow(new FileNotFoundException("something went wrong with route 3"));
@@ -68,7 +68,7 @@ class LocalFileBodsServiceHelperTest {
 
     @Test
     void shouldRejectValidRouteLackingBusData() throws IOException, URISyntaxException {
-        when(properties.getLineRefs()).thenReturn(List.of("0"));
+        when(properties.getLineRefs()).thenReturn("0");
         when(properties.getRouteFileFolder()).thenReturn("routes");
         when(busRouteReader.readBusRouteFromCsvFile(any(Path.class))).thenReturn(List.of());
         LocalFileBodsServiceHelper objectUnderTest = new LocalFileBodsServiceHelper(properties, busRouteReader);
@@ -80,7 +80,7 @@ class LocalFileBodsServiceHelperTest {
 
     @Test
     void shouldServiceValidRouteRequest() throws IOException, URISyntaxException {
-        when(properties.getLineRefs()).thenReturn(List.of("1"));
+        when(properties.getLineRefs()).thenReturn("1");
         when(properties.getRouteFileFolder()).thenReturn("routes");
         when(busRouteReader.readBusRouteFromCsvFile(any(Path.class))).thenReturn(List.of(
                 new BusRouteBean().setDescription("desc 1")

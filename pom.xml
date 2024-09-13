@@ -6,7 +6,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>siri</module>
-        <module>fbis</module>
+        <module>service</module>
     </modules>
 
     <groupId>com.flatshire.businfo</groupId>
@@ -32,5 +32,47 @@
         <tag/>
         <url/>
     </scm>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.github.spotbugs</groupId>
+                    <artifactId>spotbugs-maven-plugin</artifactId>
+                    <version>4.8.6.0</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.github.spotbugs</groupId>
+                            <artifactId>spotbugs</artifactId>
+                            <version>4.8.6</version>
+                        </dependency>
+                    </dependencies>
+                    <configuration>
+<!--                        <includeFilterFile>spotbugs-security-include.xml</includeFilterFile>-->
+<!--                        <excludeFilterFile>spotbugs-security-exclude.xml</excludeFilterFile>-->
+<!--                        <plugins>-->
+<!--                            <plugin>-->
+<!--                                <groupId>com.h3xstream.findsecbugs</groupId>-->
+<!--                                <artifactId>findsecbugs-plugin</artifactId>-->
+<!--                                <version>1.12.0</version>-->
+<!--                            </plugin>-->
+<!--                        </plugins>-->
+                        <includeTests>true</includeTests>
+                        <effort>Max</effort>
+                        <threshold>Low</threshold>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>check</id>
+                            <phase>prepare-package</phase>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
 </project>
