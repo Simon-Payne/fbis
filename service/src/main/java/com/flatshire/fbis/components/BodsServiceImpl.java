@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -17,7 +18,7 @@ public class BodsServiceImpl implements BodsService {
 
     private static final Logger log = LoggerFactory.getLogger(BodsServiceImpl.class);
 
-    private final FbisProperties properties;
+    private final Map<String, String> properties;
     private final RestTemplate restTemplate;
     private final BusRouteReader busRouteReader;
     private final ServiceMode serviceMode;
@@ -25,7 +26,7 @@ public class BodsServiceImpl implements BodsService {
 
     @Autowired
     public BodsServiceImpl(FbisProperties properties, RestTemplate restTemplate, BusRouteReader busRouteReader) {
-        this.properties = properties;
+        this.properties = FbisProperties.propertyMap(properties);;
         this.restTemplate = restTemplate;
         this.busRouteReader = busRouteReader;
         this.serviceMode = ServiceMode.fromProperties(properties.getServiceMode());

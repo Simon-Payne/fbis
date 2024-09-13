@@ -15,6 +15,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -27,10 +28,10 @@ public class LocalFileBodsServiceHelper implements BodsServiceHelper {
     private final ConcurrentMap<String, List<BusRouteBean>> routes = new ConcurrentHashMap<>();
 
     private final BusRouteReader busRouteReader;
-    private final FbisProperties properties;
+    private final Map<String, String> properties;
 
     public LocalFileBodsServiceHelper(FbisProperties properties, BusRouteReader busRouteReader) {
-        this.properties = properties;
+        this.properties = FbisProperties.propertyMap(properties);
         this.busRouteReader = busRouteReader;
         Objects.requireNonNull(properties, "FbisProperties was null");
         Objects.requireNonNull(busRouteReader, "BusRouteReader was null");
@@ -38,8 +39,8 @@ public class LocalFileBodsServiceHelper implements BodsServiceHelper {
     }
 
     public void initialiseRoutes() {
-        if(properties.getLineRefs() != null) {
-            Arrays.stream(properties.getLineRefs().split(",")).forEach(this::initialiseRoute);
+        if(properties.get("lineRefs") != null) {
+            Arrays.stream(properties.get("lineRefs").split(",")).forEach(this::initialiseRoute);
         }
     }
 
@@ -47,8 +48,8 @@ public class LocalFileBodsServiceHelper implements BodsServiceHelper {
     public Pair<String, String> fetchData(String lineRef) {
         Objects.requireNonNull(lineRef, "Line Ref was null");
 
-        if (properties == null || properties.getLineRefs() == null
-                || !properties.getLineRefs().contains(lineRef)) {
+        if (properties == null || properties.get("lineRefs") == null
+                || !properties.get("lineRefs").contains(lineRef)) {
             throw new IllegalArgumentException("Line Ref %s is not configured in this service"
                     .formatted(lineRef));
         }
@@ -80,7 +81,7 @@ public class LocalFileBodsServiceHelper implements BodsServiceHelper {
         counters.put(lineRef, new Counter());
         String lineRouteFile = "route%d.csv".formatted(line);
         try {
-            Path routeFileFolder = Path.of(properties.getRouteFileFolder());
+            Path routeFileFolder = Path.of(properties.get("routeFileFolder"));
             Path routeFilePath = routeFileFolder.resolve(lineRouteFile);
             List<BusRouteBean> busRouteBeans = this.busRouteReader.readBusRouteFromCsvFile(routeFilePath);
             routes.put(lineRef, busRouteBeans);
