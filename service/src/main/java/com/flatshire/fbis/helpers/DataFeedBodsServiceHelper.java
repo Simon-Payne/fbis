@@ -4,15 +4,16 @@ import com.flatshire.fbis.DataFeedServiceException;
 import com.flatshire.fbis.FbisProperties;
 import com.flatshire.fbis.DataFeedServiceUnavailableException;
 import com.flatshire.fbis.components.BodsServiceHelper;
-import jakarta.xml.bind.JAXBElement;
+
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import uk.org.siri.siri.*;
+import uk.org.siri.siri21.*;
 
 import java.util.List;
 import java.util.Map;
@@ -28,9 +29,9 @@ public class DataFeedBodsServiceHelper implements BodsServiceHelper {
     private final Map<String, String> properties;
     private final RestTemplate restTemplate;
 
-    public DataFeedBodsServiceHelper(FbisProperties properties, RestTemplate restTemplate) {
+    public DataFeedBodsServiceHelper(FbisProperties properties, RestTemplateBuilder restTemplateBuilder) {
         this.properties = FbisProperties.propertyMap(properties);
-        this.restTemplate = restTemplate;
+        this.restTemplate = restTemplateBuilder.build();
         Objects.requireNonNull(properties, "FbisProperties was null");
         Objects.requireNonNull(restTemplate, "Rest Template was null");
     }
@@ -52,6 +53,10 @@ public class DataFeedBodsServiceHelper implements BodsServiceHelper {
         try {
             dataset = restTemplate.getForObject(urlTemplate
                     .replace(TOKEN_PLACEHOLDER, properties.get(API_KEY)), Siri.class);
+            if(dataset == null) {
+                throw new IllegalStateException("Dataset was null");
+            }
+            return getCoordinatesFromDataset(dataset);
 
         } catch (HttpClientErrorException e) {
             if(e.getStatusCode().is5xxServerError()) {
@@ -63,24 +68,20 @@ public class DataFeedBodsServiceHelper implements BodsServiceHelper {
         catch (RestClientException e) {
             throw new DataFeedServiceUnavailableException(e);
         }
-        Objects.requireNonNull(dataset, "DataFeed was null");
-
-        return getCoordinatesFromDataset(dataset);
 
     }
 
     private static Pair<String, String> getCoordinatesFromDataset(Siri dataset) {
         ServiceDelivery serviceDelivery = dataset.getServiceDelivery();
-        List<JAXBElement<? extends AbstractServiceDeliveryStructure>> abstractFunctionalServiceDelivery =
-                serviceDelivery.getAbstractFunctionalServiceDelivery();
+        List<VehicleMonitoringDeliveryStructure> abstractFunctionalServiceDelivery =
+                serviceDelivery.getVehicleMonitoringDeliveries();
         return abstractFunctionalServiceDelivery.stream()
-                .filter(delivery -> delivery.getValue() instanceof VehicleMonitoringDeliveryStructure)
-                .findAny().map(vehicleMonitoring -> findCoords((VehicleMonitoringDeliveryStructure) vehicleMonitoring.getValue()))
+                .findAny().map(vehicleMonitoring -> findCoords((VehicleMonitoringDeliveryStructure) vehicleMonitoring))
                 .orElseThrow();
     }
 
     private static Pair<String, String> findCoords(VehicleMonitoringDeliveryStructure vehicleMonitoring) {
-        List<VehicleActivityStructure> vehicleActivity = vehicleMonitoring.getVehicleActivity();
+        List<VehicleActivityStructure> vehicleActivity = vehicleMonitoring.getVehicleActivities();
         if(vehicleActivity.isEmpty()) {
             throw new IllegalStateException("No vehicle activity found");
         } else {

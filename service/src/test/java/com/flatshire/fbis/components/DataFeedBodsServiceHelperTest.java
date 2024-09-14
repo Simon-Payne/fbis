@@ -11,11 +11,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import uk.org.siri.siri.*;
+import uk.org.siri.siri21.*;
 
 import javax.xml.namespace.QName;
 import java.math.BigDecimal;
@@ -35,7 +36,7 @@ class DataFeedBodsServiceHelperTest {
     @Mock
     private FbisProperties properties;
     @Mock
-    private RestTemplate restTemplate;
+    private RestTemplateBuilder restTemplateBuilder;
     @Mock
     private Siri dataset;
 
@@ -47,15 +48,19 @@ class DataFeedBodsServiceHelperTest {
 
     @Test
     void shouldRejectNullLineRef() {
+        RestTemplate restTemplate = mock(RestTemplate.class);
+        when(restTemplateBuilder.build()).thenReturn(restTemplate);
         NullPointerException exception = assertThrows(NullPointerException.class, () -> new DataFeedBodsServiceHelper(properties,
-                restTemplate).fetchData(null));
+                restTemplateBuilder).fetchData(null));
         assertThat(exception.getMessage(), equalTo("Line Ref was null"));
     }
 
     @Test
     void shouldHandleApiKeyNotConfigured() {
         when(properties.getApiKey()).thenReturn(null); // just being explicit
-        DataFeedBodsServiceHelper objectUnderTest = new DataFeedBodsServiceHelper(properties, restTemplate);
+        RestTemplate restTemplate = mock(RestTemplate.class);
+        when(restTemplateBuilder.build()).thenReturn(restTemplate);
+        DataFeedBodsServiceHelper objectUnderTest = new DataFeedBodsServiceHelper(properties, restTemplateBuilder);
         IllegalStateException exception = assertThrows(IllegalStateException.class,
                 () -> objectUnderTest.fetchData("1"));
         assertThat(exception.getMessage(), equalTo("API Key not supplied"));
@@ -66,9 +71,11 @@ class DataFeedBodsServiceHelperTest {
         when(properties.getDataFeedUri()).thenReturn("data feed uri");
         when(properties.getOperatorRef()).thenReturn("operator ref");
         when(properties.getApiKey()).thenReturn("api key");
+        RestTemplate restTemplate = mock(RestTemplate.class);
+        when(restTemplateBuilder.build()).thenReturn(restTemplate);
         when(restTemplate.getForObject(anyString(), eq(Siri.class)))
                 .thenThrow(new HttpClientErrorException(HttpStatusCode.valueOf(404)));
-        DataFeedBodsServiceHelper objectUnderTest = new DataFeedBodsServiceHelper(properties, restTemplate);
+        DataFeedBodsServiceHelper objectUnderTest = new DataFeedBodsServiceHelper(properties, restTemplateBuilder);
         DataFeedServiceException exception = assertThrows(DataFeedServiceException.class,
                 () -> objectUnderTest.fetchData("some line ref"));
         assertThat(exception.getMessage(), equalTo("Service error, cause was \"404 NOT_FOUND\""));
@@ -79,9 +86,11 @@ class DataFeedBodsServiceHelperTest {
         when(properties.getDataFeedUri()).thenReturn("data feed uri");
         when(properties.getOperatorRef()).thenReturn("operator ref");
         when(properties.getApiKey()).thenReturn("api key");
+        RestTemplate restTemplate = mock(RestTemplate.class);
+        when(restTemplateBuilder.build()).thenReturn(restTemplate);
         when(restTemplate.getForObject(anyString(), eq(Siri.class)))
                 .thenThrow(new RestClientException("Data Feed is down"));
-        DataFeedBodsServiceHelper objectUnderTest = new DataFeedBodsServiceHelper(properties, restTemplate);
+        DataFeedBodsServiceHelper objectUnderTest = new DataFeedBodsServiceHelper(properties, restTemplateBuilder);
         DataFeedServiceUnavailableException exception = assertThrows(DataFeedServiceUnavailableException.class,
                 () -> objectUnderTest.fetchData("1"));
         assertThat(exception.getMessage(),
@@ -93,9 +102,11 @@ class DataFeedBodsServiceHelperTest {
         when(properties.getDataFeedUri()).thenReturn("data feed uri");
         when(properties.getOperatorRef()).thenReturn("operator ref");
         when(properties.getApiKey()).thenReturn("api key");
+        RestTemplate restTemplate = mock(RestTemplate.class);
+        when(restTemplateBuilder.build()).thenReturn(restTemplate);
         when(restTemplate.getForObject(anyString(), eq(Siri.class))).thenReturn(dataset);
         configureMockDataset();
-        DataFeedBodsServiceHelper objectUnderTest = new DataFeedBodsServiceHelper(properties, restTemplate);
+        DataFeedBodsServiceHelper objectUnderTest = new DataFeedBodsServiceHelper(properties, restTemplateBuilder);
         Pair<String, String> feedResponse = objectUnderTest.fetchData("1");
         assertThat(feedResponse, equalTo(new ImmutablePair<>("10", "10")));
     }
@@ -106,7 +117,7 @@ class DataFeedBodsServiceHelperTest {
         VehicleMonitoringDeliveryStructure vehicleMonitoringDeliveryStructure =
                 mock(VehicleMonitoringDeliveryStructure.class);
         VehicleActivityStructure vehicleActivityStructure = mock(VehicleActivityStructure.class);
-        when(vehicleMonitoringDeliveryStructure.getVehicleActivity()).thenReturn(List.of(vehicleActivityStructure));
+        when(vehicleMonitoringDeliveryStructure.getVehicleActivities()).thenReturn(List.of(vehicleActivityStructure));
         VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney =
                 mock(VehicleActivityStructure.MonitoredVehicleJourney.class);
         when(vehicleActivityStructure.getMonitoredVehicleJourney()).thenReturn(monitoredVehicleJourney);
@@ -114,11 +125,7 @@ class DataFeedBodsServiceHelperTest {
         when(vehicleLocation.getLatitude()).thenReturn(BigDecimal.TEN);
         when(vehicleLocation.getLongitude()).thenReturn(BigDecimal.TEN);
         when(monitoredVehicleJourney.getVehicleLocation()).thenReturn(vehicleLocation);
-        JAXBElement<? extends AbstractServiceDeliveryStructure> jaxbElement =
-                new JAXBElement<>(new QName(""),
-                        VehicleMonitoringDeliveryStructure.class,
-                        vehicleMonitoringDeliveryStructure);
-        when(mockServiceDelivery.getAbstractFunctionalServiceDelivery()).thenReturn(List.of(jaxbElement));
+        when(mockServiceDelivery.getVehicleMonitoringDeliveries()).thenReturn(List.of(vehicleMonitoringDeliveryStructure));
     }
 
 }
