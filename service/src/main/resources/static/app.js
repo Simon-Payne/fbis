@@ -46,6 +46,7 @@ function disconnect() {
 
 function subscribeToBusUpdates(lineRef) {
     stompClient.subscribe("/topic/buspos/" + lineRef + "/", (buspos) => {
+        console.log("firing action on update")
         const posData = JSON.parse(buspos.body)
         const msg = "Bus " + posData.lineRef + " is at position " + posData.latitude + ":" + posData.longitude
         console.log(msg);

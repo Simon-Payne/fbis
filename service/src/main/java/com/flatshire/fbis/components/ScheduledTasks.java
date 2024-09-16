@@ -63,7 +63,7 @@ public class ScheduledTasks {
 
     private void pushUpdateForLineRef(String lineRef) {
         if(locationMap.containsKey(lineRef)) {
-            Pair<String, String> coordinates = ScheduledTasks.locationMap.get(lineRef);
+            Pair<String, String> coordinates = locationMap.get(lineRef);
             log.info("Map update bus {} - {}:{}",
                     lineRef,
                     coordinates.getLeft(),

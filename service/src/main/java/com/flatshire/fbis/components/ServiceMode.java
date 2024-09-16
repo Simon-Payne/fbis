@@ -18,7 +18,7 @@ public enum ServiceMode {
     }
 
     public static ServiceMode fromProperties(String modeDesc) {
-        return Arrays.stream(ServiceMode.values()).filter(m -> m.getModeDesc().equals(modeDesc))
+        return Arrays.stream(values()).filter(m -> m.getModeDesc().equals(modeDesc))
                 .findAny().orElseThrow(() ->
                         new IllegalArgumentException("Invalid service mode '%s'".formatted(modeDesc)));
     }

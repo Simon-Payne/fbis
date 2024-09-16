@@ -61,6 +61,22 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>3.25.0</version>
+                <executions>
+                    <execution>
+                        <id>pmd-aggregate-check</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>aggregate-pmd-check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
 
 </project>
