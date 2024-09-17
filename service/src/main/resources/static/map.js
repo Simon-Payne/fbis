@@ -45,6 +45,7 @@ function updateMap(lineRef, latitude, longitude) {
 
     } else {
         map = new ol.Map({
+            interactions: ol.interaction.defaults().extend([new ol.interaction.DragRotateAndZoom()]),
             target: 'map',
             layers: [
               new ol.layer.Tile({
