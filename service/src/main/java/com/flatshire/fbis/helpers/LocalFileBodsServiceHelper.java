@@ -63,7 +63,7 @@ public class LocalFileBodsServiceHelper implements BodsServiceHelper {
             throw new IllegalArgumentException("Invalid Line Ref '%s'".formatted(lineRef));
         }
         int nextCounter = counter.incrementWithReset(routes.get(lineRef).size());
-        log.info("Line {} current counter {}", lineRef, nextCounter);
+        log.debug("Line {} current counter {}", lineRef, nextCounter);
         BusRouteBean busRouteBean = routes.get(lineRef).get(nextCounter);
 
         return new ImmutablePair<>(busRouteBean.getLatitude().toPlainString(),
