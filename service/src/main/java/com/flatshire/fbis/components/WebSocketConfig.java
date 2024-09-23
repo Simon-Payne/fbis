@@ -41,7 +41,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private static class LoggingChannelInterceptor implements ExecutorChannelInterceptor {
         @Override
-        public org.springframework.messaging.Message<?> preSend(Message<?> message, MessageChannel channel) {
+        public Message<?> preSend(Message<?> message, MessageChannel channel) {
             StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
             StompCommand command = accessor.getCommand();
             assert command != null;

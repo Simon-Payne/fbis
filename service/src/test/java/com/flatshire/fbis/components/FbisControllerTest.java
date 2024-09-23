@@ -23,7 +23,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -35,6 +35,10 @@ public class FbisControllerTest {
 
     @Value("${local.server.port}")
     private int port;
+
+    @Value("${push.notification.delay}")
+    private Long pushNotificationDelay;
+
     private String URL;
 
     private static final String TEST_SUBSCRIBE_ENDPOINT = "/topic/buspos/123/";
@@ -59,7 +63,7 @@ public class FbisControllerTest {
         });
 
         await()
-                .atMost(15, SECONDS)
+                .atMost(pushNotificationDelay + 1000, MILLISECONDS)
                 .untilAsserted(() -> assertNotNull(blockingQueue.poll()));
     }
 
