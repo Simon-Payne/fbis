@@ -6,19 +6,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RestController;
 
-@Service
+@RestController
+public class FbisController {
 
-public class FbisService {
-
-    private static final Logger log = LoggerFactory.getLogger(FbisService.class);
+    private static final Logger log = LoggerFactory.getLogger(FbisController.class);
 
     private final BodsServiceImpl bodsService;
     private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    public FbisService(BodsServiceImpl bodsService, SimpMessagingTemplate messagingTemplate) {
+    public FbisController(BodsServiceImpl bodsService, SimpMessagingTemplate messagingTemplate) {
         this.bodsService = bodsService;
         this.messagingTemplate = copyMessagingTemplate(messagingTemplate);
     }
