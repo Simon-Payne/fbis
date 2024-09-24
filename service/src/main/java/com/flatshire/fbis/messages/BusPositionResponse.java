@@ -38,4 +38,13 @@ public class BusPositionResponse {
     public void setLongitude(String longitude) {
         this.longitude = longitude;
     }
+
+    @Override
+    public String toString() {
+        return "BusPositionResponse{" +
+                "lineRef='" + lineRef + '\'' +
+                ", latitude='" + latitude + '\'' +
+                ", longitude='" + longitude + '\'' +
+                '}';
+    }
 }
