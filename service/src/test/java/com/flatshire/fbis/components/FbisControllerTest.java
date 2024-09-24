@@ -41,8 +41,9 @@ public class FbisControllerTest {
 
     private String URL;
 
-    private static final String TEST_SUBSCRIBE_ENDPOINT = "/topic/buspos/123/";
-    private static final BlockingQueue<BusPositionResponse> blockingQueue = new ArrayBlockingQueue<>(1);
+    private static final String TOPIC_ENDPOINT_123 = "/topic/buspos/123/";
+    private static final String TOPIC_ENDPOINT_456 = "/topic/buspos/456/";
+    private static final BlockingQueue<BusPositionResponse> blockingQueue = new ArrayBlockingQueue<>(2);
 
     @BeforeEach
     public void beforeEach() {
@@ -51,20 +52,41 @@ public class FbisControllerTest {
     }
 
     @Test
-    void testSubscribe() throws InterruptedException {
-
+    void testSubscribeAndGetNotifications() throws InterruptedException {
         WebSocketClient client = new StandardWebSocketClient();
         WebSocketStompClient stompClient = new WebSocketStompClient(client);
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
         CompletableFuture<StompSession> connecting = stompClient.connectAsync(URL, new FbisStompSessionHandler());
         connecting.whenComplete((session, e) -> {
             log.info("made connection");
-            session.subscribe(TEST_SUBSCRIBE_ENDPOINT, new FbisStompSessionHandler());
+            session.subscribe(TOPIC_ENDPOINT_123, new FbisStompSessionHandler());
         });
-
         await()
                 .atMost(pushNotificationDelay + 1000, MILLISECONDS)
                 .untilAsserted(() -> assertNotNull(blockingQueue.poll()));
+    }
+
+    @Test
+    void testSubscribeTwoFeedsAndGetNotificationsFromBoth() {
+        WebSocketClient client = new StandardWebSocketClient();
+        WebSocketStompClient stompClient = new WebSocketStompClient(client);
+        stompClient.setMessageConverter(new MappingJackson2MessageConverter());
+        CompletableFuture<StompSession> connecting = stompClient.connectAsync(URL, new FbisStompSessionHandler());
+        connecting.whenComplete((session, e) -> {
+            log.info("made connection");
+            session.subscribe(TOPIC_ENDPOINT_123, new FbisStompSessionHandler());
+            session.subscribe(TOPIC_ENDPOINT_456, new FbisStompSessionHandler());
+        });
+        await()
+                .atMost(pushNotificationDelay + 1000, MILLISECONDS)
+                .untilAsserted(this::makeAssertions);
+    }
+
+    private void makeAssertions() {
+        BusPositionResponse busPositionResponse = blockingQueue.poll();
+        assertNotNull(busPositionResponse);
+        
+
     }
 
     private static class FbisStompSessionHandler extends StompSessionHandlerAdapter {
