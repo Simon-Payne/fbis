@@ -63,10 +63,11 @@ public class FbisControllerTest {
         WebSocketStompClient stompClient = new WebSocketStompClient(client);
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
         BlockingQueue<BusPositionResponse> blockingQueue = new ArrayBlockingQueue<>(1);
-        CompletableFuture<StompSession> connecting = stompClient.connectAsync(URL, new FbisStompSessionHandler(blockingQueue));
+        CompletableFuture<StompSession> connecting = stompClient.connectAsync(URL, new StompSessionHandlerAdapter() {
+        });
         connecting.whenComplete((session, e) -> {
             log.info("made connection");
-            session.subscribe(TOPIC_ENDPOINT_123, new FbisStompSessionHandler(blockingQueue));
+            session.subscribe(TOPIC_ENDPOINT_123, new ResponseCollectingStompSessionHandler(blockingQueue));
         });
         await()
                 .atMost(pushNotificationDelay + 1000, MILLISECONDS)
@@ -79,11 +80,12 @@ public class FbisControllerTest {
         WebSocketStompClient stompClient = new WebSocketStompClient(client);
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
         BlockingQueue<BusPositionResponse> blockingQueue = new ArrayBlockingQueue<>(2);
-        CompletableFuture<StompSession> connecting = stompClient.connectAsync(URL, new FbisStompSessionHandler(blockingQueue));
+        CompletableFuture<StompSession> connecting = stompClient.connectAsync(URL, new StompSessionHandlerAdapter() {
+        });
         connecting.whenComplete((session, e) -> {
             log.info("made connection");
-            session.subscribe(TOPIC_ENDPOINT_123, new FbisStompSessionHandler(blockingQueue));
-            session.subscribe(TOPIC_ENDPOINT_456, new FbisStompSessionHandler(blockingQueue));
+            session.subscribe(TOPIC_ENDPOINT_123, new ResponseCollectingStompSessionHandler(blockingQueue));
+            session.subscribe(TOPIC_ENDPOINT_456, new ResponseCollectingStompSessionHandler(blockingQueue));
         });
         await()
                 .atMost(pushNotificationDelay + 1000, MILLISECONDS)
@@ -99,11 +101,11 @@ public class FbisControllerTest {
         assertThat(responseMap.keySet(), hasItems("123", "456"));
     }
 
-    private static class FbisStompSessionHandler extends StompSessionHandlerAdapter {
+    private static class ResponseCollectingStompSessionHandler extends StompSessionHandlerAdapter {
 
         private final BlockingQueue<BusPositionResponse> blockingQueue;
 
-        public FbisStompSessionHandler(BlockingQueue<BusPositionResponse> blockingQueue) {
+        public ResponseCollectingStompSessionHandler(BlockingQueue<BusPositionResponse> blockingQueue) {
             this.blockingQueue = blockingQueue;
         }
 
