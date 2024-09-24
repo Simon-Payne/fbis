@@ -2,15 +2,11 @@ const stompClient = new StompJs.Client({
     brokerURL: 'ws://localhost:8080/bus-location-feed'
 });
 
+const subscriptionMap = new Map();
+
 stompClient.onConnect = (frame) => {
     setConnected(true);
     console.log('Connected: ' + frame);
-    /*stompClient.subscribe('/topic/buspos', (buspos) => {
-        const posData = JSON.parse(buspos.body)
-        const msg = "Bus " + posData.lineRef + " is at position " + posData.latitude + ":" + posData.longitude
-        console.log(msg);
-        showBusPos(msg, posData);
-    });*/
 };
 
 stompClient.onWebSocketError = (error) => {
@@ -31,7 +27,9 @@ function setConnected(connected) {
     else {
         $("#conversation").hide();
     }
-    $("#buspos").html("");
+    $("#buspos117").html("");
+    $("#buspos125").html("");
+    $("#buspos129").html("");
 }
 
 function connect() {
@@ -41,21 +39,27 @@ function connect() {
 function disconnect() {
     stompClient.deactivate();
     setConnected(false);
+    subscriptionMap.forEach((key) => {
+      subscriptionMap.delete(key);
+    });
     console.log("Disconnected");
 }
 
 function subscribeToBusUpdates(lineRef) {
-    stompClient.subscribe("/topic/buspos/" + lineRef + "/", (buspos) => {
+    let subscription = stompClient.subscribe("/topic/buspos/" + lineRef + "/", (buspos) => {
         console.log("firing action on update")
+        subscriptionMap.set(lineRef, true)
         const posData = JSON.parse(buspos.body)
         const msg = "Bus " + posData.lineRef + " is at position " + posData.latitude + ":" + posData.longitude
         console.log(msg);
         showBusPos(msg, posData);
     });
+    subscriptionMap.set(lineRef, subscription)
+    $("#subscribe" + lineRef).css("background-color","yellow")
 }
 
 function showBusPos(message, posData) {
-    $("#buspos").html("<tr><td>" + message + "</td></tr>");
+    $("#buspos" + posData.lineRef).html("<tr><td>" + message + "</td></tr>");
     window.latitude = posData.latitude;
     window.longitude = posData.longitude;
     $.getScript("/map.js", function() {
@@ -64,12 +68,26 @@ function showBusPos(message, posData) {
     });
 }
 
+function toggleSubscription(lineRef, subscribeFunction) {
+    let subscription = subscriptionMap.get(lineRef)
+    if(subscription) {
+        console.log('unsubscribing from ' + lineRef)
+        stompClient.unsubscribe("/topic/buspos/" + lineRef + "/", () => {
+            subscriptionMap.delete(lineRef)
+            $("#subscribe" + lineRef).css("background-color","white")
+        })
+    } else {
+        console.log('subscribing to ' + lineRef)
+        subscribeFunction(lineRef);
+    }
+}
+
 $(function () {
     $("form").on('submit', (e) => e.preventDefault());
     $( "#connect" ).click(() => connect());
     $( "#disconnect" ).click(() => disconnect());
-    $( "#subscribe117" ).click(() => subscribeToBusUpdates(117));
-    $( "#subscribe125" ).click(() => subscribeToBusUpdates(125));
-    $( "#subscribe129" ).click(() => subscribeToBusUpdates(129));
+    $( "#subscribe117" ).click(() => toggleSubscription(117, subscribeToBusUpdates));
+    $( "#subscribe125" ).click(() => toggleSubscription(125, subscribeToBusUpdates));
+    $( "#subscribe129" ).click(() => toggleSubscription(129, subscribeToBusUpdates));
 });
 
