@@ -32,14 +32,11 @@ public class FbisController {
     }
 
     public void pushUpdateToLineRef(String lineRef, Pair<String, String> coordinates) {
-            log.info("Map update bus {} - {}:{}",
-                    lineRef,
-                    coordinates.getLeft(),
-                    coordinates.getRight());
-            messagingTemplate.convertAndSend("/topic/buspos/%s/".formatted(lineRef),
-                    new BusPositionResponse(lineRef,
-                            coordinates.getLeft(),
-                            coordinates.getRight()));
+        BusPositionResponse busPositionResponse = new BusPositionResponse(lineRef,
+                coordinates.getLeft(),
+                coordinates.getRight());
+        messagingTemplate.convertAndSend("/topic/buspos/%s/".formatted(lineRef), busPositionResponse);
+        log.info("Map update {}", busPositionResponse);
     }
 
     private static SimpMessagingTemplate copyMessagingTemplate(SimpMessagingTemplate messagingTemplate) {
