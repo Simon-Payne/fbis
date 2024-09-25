@@ -47,14 +47,17 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             StompCommand command = accessor.getCommand();
             assert command != null;
             SimpMessageType messageType = command.getMessageType();
-            if (messageType.equals(SimpMessageType.SUBSCRIBE) && message.getHeaders().containsKey("simpDestination")) {
-                String topic = (String) message.getHeaders().get("simpDestination");
-                log.info("Intercepted SUBSCRIBE to %s".formatted(topic));
+            if (messageType.equals(SimpMessageType.SUBSCRIBE)) {
+                if(message.getHeaders().containsKey("simpDestination") &&
+                    message.getHeaders().containsKey("simpSubscriptionId")) {
+                    String topic = (String) message.getHeaders().get("simpDestination");
+                    String id = (String) message.getHeaders().get("simpSubscriptionId");
+                    log.info("Intercepted SUBSCRIBE to %s of subscription id %s".formatted(topic, id));
+                }
             } else if (messageType.equals(SimpMessageType.UNSUBSCRIBE)) {
-                List<String> destinations = accessor.getNativeHeader("destination");
-                if (destinations != null && !destinations.isEmpty()) {
-                    String topic = destinations.get(0);
-                    log.info("Intercepted UNSUBSCRIBE from %s".formatted(topic));
+                List<String> subscriptionIds = accessor.getNativeHeader("id");
+                if (subscriptionIds != null && !subscriptionIds.isEmpty()) {
+                    log.info("Intercepted UNSUBSCRIBE of subscription id %s".formatted(subscriptionIds.get(0)));
                 }
             } else if (messageType.equals(SimpMessageType.MESSAGE)) {
                 byte[] payload = (byte[]) message.getPayload();
