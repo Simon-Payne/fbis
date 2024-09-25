@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -58,7 +59,7 @@ public class FbisControllerTest {
     }
 
     @Test
-    void testSubscribeAndGetNotifications() throws InterruptedException {
+    void subscribeOneFeedShouldGetNotifications() throws InterruptedException {
         WebSocketClient client = new StandardWebSocketClient();
         WebSocketStompClient stompClient = new WebSocketStompClient(client);
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
@@ -75,7 +76,7 @@ public class FbisControllerTest {
     }
 
     @Test
-    void testSubscribeTwoFeedsAndGetNotificationsFromBoth() {
+    void subscribeTwoFeedsShouldGetNotificationsFromBoth() {
         WebSocketClient client = new StandardWebSocketClient();
         WebSocketStompClient stompClient = new WebSocketStompClient(client);
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
@@ -90,6 +91,38 @@ public class FbisControllerTest {
         await()
                 .atMost(pushNotificationDelay + 1000, MILLISECONDS)
                 .untilAsserted(() -> this.makeAssertions(blockingQueue));
+    }
+
+    @Test
+    void subscribeThenUnsubscribeShouldStopNotifications() throws InterruptedException {
+        WebSocketClient client = new StandardWebSocketClient();
+        WebSocketStompClient stompClient = new WebSocketStompClient(client);
+        stompClient.setMessageConverter(new MappingJackson2MessageConverter());
+        BlockingQueue<BusPositionResponse> blockingQueue = new ArrayBlockingQueue<>(1);
+        AtomicReference<Boolean> hasProcessFinished = new AtomicReference<>();
+        hasProcessFinished.set(false);
+        CompletableFuture<StompSession> connecting = stompClient.connectAsync(URL, new StompSessionHandlerAdapter() {
+        });
+        CompletableFuture<StompSession.Subscription> subscribing = connecting.thenApply(stompSession -> {
+            log.info("made connection");
+            return stompSession.subscribe(TOPIC_ENDPOINT_123,
+                    new ResponseCollectingStompSessionHandler(blockingQueue));
+        });
+        CompletableFuture<StompSession.Subscription> receiving = subscribing.thenApply(subscription -> {
+            log.info("subscribed successfully");
+            await()
+                    .atMost(pushNotificationDelay + 1000, MILLISECONDS)
+                    .untilAsserted(() -> assertNotNull(blockingQueue.poll()));
+            return subscription;
+        });
+        receiving.thenAccept(subscription -> {
+            log.info("received topic message successfully");
+            subscription.unsubscribe(subscription.getSubscriptionHeaders());
+            hasProcessFinished.set(true);
+        });
+        await()
+                .atMost(pushNotificationDelay + 1000000, MILLISECONDS)
+                .until(hasProcessFinished::get);
     }
 
     private void makeAssertions(BlockingQueue<BusPositionResponse> blockingQueue) {

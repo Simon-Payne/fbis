@@ -45,16 +45,15 @@ function disconnect() {
     console.log("Disconnected");
 }
 
-function subscribeToBusUpdates(lineRef) {
-    let subscription = stompClient.subscribe("/topic/buspos/" + lineRef + "/", (buspos) => {
-        console.log("firing action on update")
-        subscriptionMap.set(lineRef, true)
-        const posData = JSON.parse(buspos.body)
+function subscribe(lineRef) {
+    let subscription = stompClient.subscribe("/topic/buspos/" + lineRef + "/", (response) => {
+        const posData = JSON.parse(response.body)
         const msg = "Bus " + posData.lineRef + " is at position " + posData.latitude + ":" + posData.longitude
         console.log(msg);
         showBusPos(msg, posData);
     });
-    subscriptionMap.set(lineRef, subscription)
+    console.log("subscribed to lineRef " + lineRef + " subscription id " + subscription.id)
+    subscriptionMap.set(lineRef, subscription.id)
     $("#subscribe" + lineRef).css("background-color","yellow")
 }
 
@@ -68,17 +67,19 @@ function showBusPos(message, posData) {
     });
 }
 
-function toggleSubscription(lineRef, subscribeFunction) {
-    let subscription = subscriptionMap.get(lineRef)
-    if(subscription) {
-        console.log('unsubscribing from ' + lineRef)
-        stompClient.unsubscribe("/topic/buspos/" + lineRef + "/", () => {
-            subscriptionMap.delete(lineRef)
-            $("#subscribe" + lineRef).css("background-color","white")
-        })
+function unsubscribe(lineRef, subscriptionId) {
+    stompClient.unsubscribe(subscriptionId)
+    console.log("unsubscribed from lineRef " + lineRef + " subscription id " + subscriptionId)
+    subscriptionMap.delete(lineRef)
+    $("#subscribe" + lineRef).css("background-color","white")
+}
+
+function toggleSubscription(lineRef) {
+    let subscriptionId = subscriptionMap.get(lineRef)
+    if(subscriptionId !== undefined) {
+        unsubscribe(lineRef, subscriptionId)
     } else {
-        console.log('subscribing to ' + lineRef)
-        subscribeFunction(lineRef);
+        subscribe(lineRef);
     }
 }
 
@@ -86,8 +87,8 @@ $(function () {
     $("form").on('submit', (e) => e.preventDefault());
     $( "#connect" ).click(() => connect());
     $( "#disconnect" ).click(() => disconnect());
-    $( "#subscribe117" ).click(() => toggleSubscription(117, subscribeToBusUpdates));
-    $( "#subscribe125" ).click(() => toggleSubscription(125, subscribeToBusUpdates));
-    $( "#subscribe129" ).click(() => toggleSubscription(129, subscribeToBusUpdates));
+    $( "#subscribe117" ).click(() => toggleSubscription(117));
+    $( "#subscribe125" ).click(() => toggleSubscription(125));
+    $( "#subscribe129" ).click(() => toggleSubscription(129));
 });
 
