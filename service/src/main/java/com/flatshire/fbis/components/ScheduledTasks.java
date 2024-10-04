@@ -44,15 +44,15 @@ public class ScheduledTasks {
     private void pushBusPosition(String lineRef) {
         if (locationMap.containsKey(lineRef)) {
             Pair<String, String> coordinates = locationMap.get(lineRef);
-            FbisController fbisController = applicationContext.getBean(FbisController.class);
-            fbisController.pushUpdateToLineRef(lineRef, coordinates);
+            FbisWebSocketController fbisWebSocketController = applicationContext.getBean(FbisWebSocketController.class);
+            fbisWebSocketController.pushUpdateToLineRef(lineRef, coordinates);
         } else {
             log.error("Bus {} has no stored locations", lineRef);
         }
     }
 
     private void fetchBusPosition(String lineRef) {
-        FbisController fbisController = applicationContext.getBean(FbisController.class);
-        locationMap.put(lineRef, fbisController.readFeedForLineRef(lineRef));
+        FbisWebSocketController fbisWebSocketController = applicationContext.getBean(FbisWebSocketController.class);
+        locationMap.put(lineRef, fbisWebSocketController.readFeedForLineRef(lineRef));
     }
 }

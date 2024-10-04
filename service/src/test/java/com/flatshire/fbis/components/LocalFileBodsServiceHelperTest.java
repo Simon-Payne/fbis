@@ -97,4 +97,12 @@ class LocalFileBodsServiceHelperTest {
         assertThat(data.getRight(), equalTo("1.0"));
     }
 
+    @Test
+    void shouldHandleNullOperatorRef() {
+        LocalFileBodsServiceHelper objectUnderTest = new LocalFileBodsServiceHelper(properties, busRouteReader);
+        NullPointerException exception = assertThrows(NullPointerException.class,
+                () -> objectUnderTest.fetchBusInfo(null));
+        assertThat(exception.getMessage(), equalTo("Operator reference cannot be null"));
+    }
+
 }

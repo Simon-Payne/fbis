@@ -36,9 +36,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("inttest")
-public class FbisControllerTest {
+class FbisWebSocketControllerTest {
 
-    private static final Logger log = LoggerFactory.getLogger(FbisControllerTest.class);
+    private static final Logger log = LoggerFactory.getLogger(FbisWebSocketControllerTest.class);
 
     @Value("${local.server.port}")
     private int port;
