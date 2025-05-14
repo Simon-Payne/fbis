@@ -1,5 +1,7 @@
+const host = window.location.host
+console.log('host: ' + host)
 const stompClient = new StompJs.Client({
-    brokerURL: 'ws://localhost:8080/bus-location-feed'
+    brokerURL: 'ws://' + host + '/bus-location-feed'
 });
 
 const subscriptionMap = new Map();
