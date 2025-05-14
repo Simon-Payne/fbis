@@ -15,13 +15,19 @@ The service uses [OpenStreetMap](https://www.openstreetmap.org/) and [OpenLayers
 
 ## How to build the FBIS Service
 
+### &TL;DR
+```
+export API_KEY={BODS API key from https://data.bus-data.dft.gov.uk/}
+mvn spring-boot:run
+```
+
 ### Requirements: -
  * Apache Maven 3.0.0+
  * Java SDK 17
- * Register with BODS for an API key
+ * Register with [BODS](https://data.bus-data.dft.gov.uk/)  for an API key
 
 ### Optionally: -
- * Register with NVD for an API key (saves time running the Maven build).
+ * Register with [NVD](https://nvd.nist.gov/developers/request-an-api-key) for an API key (saves time running the Maven build).
 
 ### Steps to fetch, build and run the project
 1. Clone the source code to a local directory.
