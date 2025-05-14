@@ -9,14 +9,16 @@ import java.util.Map;
 @Configuration
 public class FbisProperties {
 
-    public static final String SERVICE_MODE = "serviceMode";
-    public static final String DATASET_URI = "datasetUri";
-    public static final String DATA_FEED_URI = "dataFeedUri";
+    private static final String SERVICE_MODE = "serviceMode";
+    private static final String DATASET_URI = "datasetUri";
+    private static final String DATA_FEED_URI = "dataFeedUri";
     public static final String API_KEY = "apiKey";
-    public static final String DATASET_ID = "datasetId";
-    public static final String OPERATOR_REF = "operatorRef";
-    public static final String LINE_REFS = "lineRefs";
-    public static final String ROUTE_FILE_FOLDER = "routeFileFolder";
+    private static final String DATASET_ID = "datasetId";
+    private static final String OPERATOR_REF = "operatorRef";
+    private static final String LINE_REFS = "lineRefs";
+    private static final String ROUTE_FILE_FOLDER = "routeFileFolder";
+    private static final String PUSH_NOTIFICATION_DELAY = "pushNotificationDelay";
+
     @Value("${service.mode}")
     private String serviceMode;
 
@@ -40,6 +42,9 @@ public class FbisProperties {
 
     @Value("${route.file.folder}")
     private String routeFileFolder;
+
+    @Value( "${push.notification.delay}")
+    private Long pushNotificationDelay;
 
     public String getServiceMode() {
         return serviceMode;
@@ -77,6 +82,10 @@ public class FbisProperties {
         return routeFileFolder;
     }
 
+    public Long getPushNotificationDelay() {
+        return pushNotificationDelay;
+    }
+
     public static Map<String, String> propertyMap(FbisProperties fbisProperties) {
         if (fbisProperties == null) {
             return null;
@@ -105,6 +114,9 @@ public class FbisProperties {
         }
         if (fbisProperties.getRouteFileFolder() != null) {
             map.put(ROUTE_FILE_FOLDER, fbisProperties.getRouteFileFolder());
+        }
+        if (fbisProperties.getPushNotificationDelay() != null) {
+            map.put(PUSH_NOTIFICATION_DELAY, String.valueOf(fbisProperties.getPushNotificationDelay()));
         }
         return map;
     }

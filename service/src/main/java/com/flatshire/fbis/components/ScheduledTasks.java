@@ -31,12 +31,12 @@ public class ScheduledTasks {
     }
 
 
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRateString = "${push.notification.delay}")
     public void readDataFeeds() {
         lineRefs.forEach(this::fetchBusPosition);
     }
 
-    @Scheduled(fixedRate = 10000, initialDelay = 5000)
+    @Scheduled(fixedRateString = "${push.notification.delay}", initialDelayString = "${push.notification.delay.initial}")
     public void pushUpdates() {
         lineRefs.forEach(this::pushBusPosition);
     }
