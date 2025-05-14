@@ -7,6 +7,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -25,13 +26,13 @@ public class BodsServiceImpl implements BodsService {
     private final BodsServiceHelper serviceHelper;
 
     @Autowired
-    public BodsServiceImpl(FbisProperties properties, RestTemplate restTemplate, BusRouteReader busRouteReader) {
-        this.properties = FbisProperties.propertyMap(properties);;
-        this.restTemplate = restTemplate;
+    public BodsServiceImpl(FbisProperties properties, RestTemplateBuilder restTemplateBuilder, BusRouteReader busRouteReader) {
+        this.properties = FbisProperties.propertyMap(properties);
+        this.restTemplate = restTemplateBuilder.build();
         this.busRouteReader = busRouteReader;
         this.serviceMode = ServiceMode.fromProperties(properties.getServiceMode());
         this.serviceHelper = serviceMode == ServiceMode.DATAFEED ?
-                new DataFeedBodsServiceHelper(properties, restTemplate)
+                new DataFeedBodsServiceHelper(properties, restTemplateBuilder)
                 : new LocalFileBodsServiceHelper(properties, busRouteReader);
     }
 

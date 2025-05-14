@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
@@ -25,8 +26,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 class FbisApplicationTest {
 
     @MockBean
-    private RestTemplate restTemplate;
-
+    private RestTemplateBuilder restTemplateBuilder;
     @Autowired
     private BodsService bodsService;
 

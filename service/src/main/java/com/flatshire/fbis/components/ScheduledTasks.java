@@ -29,7 +29,7 @@ public class ScheduledTasks {
     @Autowired
     public ScheduledTasks(BodsServiceImpl bodsService, SimpMessagingTemplate messagingTemplate) {
         this.bodsService = bodsService;
-        this.messagingTemplate = messagingTemplate;
+        this.messagingTemplate = new SimpMessagingTemplate(messagingTemplate.getMessageChannel());
     }
 
     @Scheduled(fixedRate = 10000)

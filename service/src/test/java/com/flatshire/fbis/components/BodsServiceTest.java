@@ -6,11 +6,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.client.RestTemplate;
-import uk.org.siri.siri.Siri;
+import uk.org.siri.siri21.Siri;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -18,6 +19,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 
@@ -28,7 +30,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 class BodsServiceTest {
 
     @MockBean
-    private RestTemplate restTemplate;
+    private RestTemplateBuilder restTemplateBuilder;
 
     @Autowired
     private BodsServiceImpl objectUnderTest;
@@ -42,6 +44,8 @@ class BodsServiceTest {
 
     @Test
     void shouldHandleInvalidLineRef() {
+        RestTemplate restTemplate = mock(RestTemplate.class);
+        when(restTemplateBuilder.build()).thenReturn(restTemplate);
         when(restTemplate.getForObject(anyString(), eq(Siri.class))).thenReturn(new Siri());
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> objectUnderTest.readPositionFromDataFeed("invalid"));
