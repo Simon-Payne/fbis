@@ -1,1 +1,1 @@
-web: java -jar service/target/*.jar --port $PORT --host 0.0.0.0
+web: java -jar service/target/*.jar -Dserver.port=$PORT --host 0.0.0.0
