@@ -18,7 +18,6 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.org.siri.siri21.*;
 
-import javax.xml.namespace.QName;
 import java.math.BigDecimal;
 import java.util.List;
 
