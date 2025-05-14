@@ -19,12 +19,20 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.awaitility.Awaitility.await;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hamcrest.core.IsIterableContaining.hasItems;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -43,12 +51,10 @@ public class FbisControllerTest {
 
     private static final String TOPIC_ENDPOINT_123 = "/topic/buspos/123/";
     private static final String TOPIC_ENDPOINT_456 = "/topic/buspos/456/";
-    private static final BlockingQueue<BusPositionResponse> blockingQueue = new ArrayBlockingQueue<>(2);
 
     @BeforeEach
     public void beforeEach() {
         URL = "ws://localhost:" + port + "/bus-location-feed";
-        blockingQueue.clear();
     }
 
     @Test
@@ -56,10 +62,11 @@ public class FbisControllerTest {
         WebSocketClient client = new StandardWebSocketClient();
         WebSocketStompClient stompClient = new WebSocketStompClient(client);
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
-        CompletableFuture<StompSession> connecting = stompClient.connectAsync(URL, new FbisStompSessionHandler());
+        BlockingQueue<BusPositionResponse> blockingQueue = new ArrayBlockingQueue<>(1);
+        CompletableFuture<StompSession> connecting = stompClient.connectAsync(URL, new FbisStompSessionHandler(blockingQueue));
         connecting.whenComplete((session, e) -> {
             log.info("made connection");
-            session.subscribe(TOPIC_ENDPOINT_123, new FbisStompSessionHandler());
+            session.subscribe(TOPIC_ENDPOINT_123, new FbisStompSessionHandler(blockingQueue));
         });
         await()
                 .atMost(pushNotificationDelay + 1000, MILLISECONDS)
@@ -71,25 +78,35 @@ public class FbisControllerTest {
         WebSocketClient client = new StandardWebSocketClient();
         WebSocketStompClient stompClient = new WebSocketStompClient(client);
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
-        CompletableFuture<StompSession> connecting = stompClient.connectAsync(URL, new FbisStompSessionHandler());
+        BlockingQueue<BusPositionResponse> blockingQueue = new ArrayBlockingQueue<>(2);
+        CompletableFuture<StompSession> connecting = stompClient.connectAsync(URL, new FbisStompSessionHandler(blockingQueue));
         connecting.whenComplete((session, e) -> {
             log.info("made connection");
-            session.subscribe(TOPIC_ENDPOINT_123, new FbisStompSessionHandler());
-            session.subscribe(TOPIC_ENDPOINT_456, new FbisStompSessionHandler());
+            session.subscribe(TOPIC_ENDPOINT_123, new FbisStompSessionHandler(blockingQueue));
+            session.subscribe(TOPIC_ENDPOINT_456, new FbisStompSessionHandler(blockingQueue));
         });
         await()
                 .atMost(pushNotificationDelay + 1000, MILLISECONDS)
-                .untilAsserted(this::makeAssertions);
+                .untilAsserted(() -> this.makeAssertions(blockingQueue));
     }
 
-    private void makeAssertions() {
-        BusPositionResponse busPositionResponse = blockingQueue.poll();
-        assertNotNull(busPositionResponse);
-        
-
+    private void makeAssertions(BlockingQueue<BusPositionResponse> blockingQueue) {
+        final List<BusPositionResponse> pushedResponses = new ArrayList<>();
+        blockingQueue.drainTo(pushedResponses);
+        assertThat(pushedResponses, hasSize(2));
+        Map<String, BusPositionResponse> responseMap = pushedResponses.stream().collect(
+                Collectors.toMap(BusPositionResponse::getLineRef, Function.identity()));
+        assertThat(responseMap.keySet(), hasItems("123", "456"));
     }
 
     private static class FbisStompSessionHandler extends StompSessionHandlerAdapter {
+
+        private final BlockingQueue<BusPositionResponse> blockingQueue;
+
+        public FbisStompSessionHandler(BlockingQueue<BusPositionResponse> blockingQueue) {
+            this.blockingQueue = blockingQueue;
+        }
+
         @Override
         public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
             log.info("Yay! I'm connected!");
