@@ -16,6 +16,7 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -47,8 +48,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             assert command != null;
             SimpMessageType messageType = command.getMessageType();
             if (messageType.equals(SimpMessageType.SUBSCRIBE) && message.getHeaders().containsKey("simpDestination")) {
-                String destination = (String) message.getHeaders().get("simpDestination");
-                log.info("Intercepted message type %s with destination %s".formatted(messageType.name(), destination));
+                String topic = (String) message.getHeaders().get("simpDestination");
+                log.info("Intercepted SUBSCRIBE to %s".formatted(topic));
+            } else if (messageType.equals(SimpMessageType.UNSUBSCRIBE)) {
+                List<String> destinations = accessor.getNativeHeader("destination");
+                if (destinations != null && !destinations.isEmpty()) {
+                    String topic = destinations.get(0);
+                    log.info("Intercepted UNSUBSCRIBE from %s".formatted(topic));
+                }
             } else if (messageType.equals(SimpMessageType.MESSAGE)) {
                 byte[] payload = (byte[]) message.getPayload();
                 log.info("Message payload: %s".formatted(new String(payload, StandardCharsets.UTF_8)));
