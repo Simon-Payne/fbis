@@ -33,28 +33,26 @@ public class ScheduledTasks {
 
     @Scheduled(fixedRate = 10000)
     public void readDataFeeds() {
-        updateLineDataFromFeed(applicationContext.getBean(FbisService.class), "117");
-        updateLineDataFromFeed(applicationContext.getBean(FbisService.class), "125");
-        updateLineDataFromFeed(applicationContext.getBean(FbisService.class), "129");
-    }
-
-    private void updateLineDataFromFeed(FbisService fbisService, String lineRef) {
-        locationMap.put(lineRef, fbisService.readFeedForLineRef(lineRef));
+        lineRefs.forEach(this::fetchBusPosition);
     }
 
     @Scheduled(fixedRate = 10000, initialDelay = 5000)
     public void pushUpdates() {
-        pushUpdateToLineRef(applicationContext.getBean(FbisService.class), "117");
-        pushUpdateToLineRef(applicationContext.getBean(FbisService.class), "125");
-        pushUpdateToLineRef(applicationContext.getBean(FbisService.class), "129");
+        lineRefs.forEach(this::pushBusPosition);
     }
 
-    private void pushUpdateToLineRef(FbisService fbisService, String lineRef) {
+    private void pushBusPosition(String lineRef) {
         if (locationMap.containsKey(lineRef)) {
             Pair<String, String> coordinates = locationMap.get(lineRef);
+            FbisService fbisService = applicationContext.getBean(FbisService.class);
             fbisService.pushUpdateToLineRef(lineRef, coordinates);
         } else {
             log.error("Bus {} has no stored locations", lineRef);
         }
+    }
+
+    private void fetchBusPosition(String lineRef) {
+        FbisService fbisService = applicationContext.getBean(FbisService.class);
+        locationMap.put(lineRef, fbisService.readFeedForLineRef(lineRef));
     }
 }
