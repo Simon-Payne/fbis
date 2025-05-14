@@ -5,6 +5,7 @@ import com.flatshire.fbis.FbisProperties;
 import com.flatshire.fbis.DataFeedServiceUnavailableException;
 import com.flatshire.fbis.components.BodsServiceHelper;
 
+import com.flatshire.fbis.domain.BusInfo;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -69,6 +70,11 @@ public class DataFeedBodsServiceHelper implements BodsServiceHelper {
             throw new DataFeedServiceUnavailableException(e);
         }
 
+    }
+
+    @Override
+    public List<BusInfo> fetchBusInfo(String operatorRef) {
+        return null;
     }
 
     private static Pair<String, String> getCoordinatesFromDataset(Siri dataset) {

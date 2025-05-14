@@ -9,15 +9,15 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 @Controller
-public class FbisController {
+public class FbisWebSocketController {
 
-    private static final Logger log = LoggerFactory.getLogger(FbisController.class);
+    private static final Logger log = LoggerFactory.getLogger(FbisWebSocketController.class);
 
     private final BodsServiceImpl bodsService;
     private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    public FbisController(BodsServiceImpl bodsService, SimpMessagingTemplate messagingTemplate) {
+    public FbisWebSocketController(BodsServiceImpl bodsService, SimpMessagingTemplate messagingTemplate) {
         this.bodsService = bodsService;
         this.messagingTemplate = copyMessagingTemplate(messagingTemplate);
     }
