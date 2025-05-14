@@ -15,18 +15,21 @@ import org.springframework.web.client.RestTemplate;
 import uk.org.siri.siri.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+
+import static com.flatshire.fbis.FbisProperties.API_KEY;
 
 public class DataFeedBodsServiceHelper implements BodsServiceHelper {
 
     private static final Logger log = LoggerFactory.getLogger(DataFeedBodsServiceHelper.class);
 
     public static final String TOKEN_PLACEHOLDER = "********";
-    private final FbisProperties properties;
+    private final Map<String, String> properties;
     private final RestTemplate restTemplate;
 
     public DataFeedBodsServiceHelper(FbisProperties properties, RestTemplate restTemplate) {
-        this.properties = properties;
+        this.properties = FbisProperties.propertyMap(properties);
         this.restTemplate = restTemplate;
         Objects.requireNonNull(properties, "FbisProperties was null");
         Objects.requireNonNull(restTemplate, "Rest Template was null");
@@ -35,20 +38,20 @@ public class DataFeedBodsServiceHelper implements BodsServiceHelper {
     @Override
     public Pair<String, String> fetchData(String lineRef) throws DataFeedServiceUnavailableException {
         Objects.requireNonNull(lineRef, "Line Ref was null");
-        if(properties.getApiKey() == null) {
+        if(properties.get(API_KEY) == null) {
             throw new IllegalStateException("API Key not supplied");
         }
 
         String urlTemplate = "%s?operatorRef=%s&api_key=%s".formatted(
-                properties.getDataFeedUri(),
-                properties.getOperatorRef(),
+                properties.get("dataFeedUri"),
+                properties.get("operatorRef"),
                 TOKEN_PLACEHOLDER);
         log.info(urlTemplate);
 
         Siri dataset;
         try {
             dataset = restTemplate.getForObject(urlTemplate
-                    .replace(TOKEN_PLACEHOLDER, properties.getApiKey()), Siri.class);
+                    .replace(TOKEN_PLACEHOLDER, properties.get(API_KEY)), Siri.class);
 
         } catch (HttpClientErrorException e) {
             if(e.getStatusCode().is5xxServerError()) {
