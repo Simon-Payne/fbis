@@ -4,6 +4,7 @@ import com.flatshire.fbis.FbisProperties;
 import com.flatshire.fbis.components.BodsServiceHelper;
 import com.flatshire.fbis.components.BusRouteReader;
 import com.flatshire.fbis.csv.BusRouteBean;
+import com.flatshire.fbis.domain.BusInfo;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -12,10 +13,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -28,6 +26,11 @@ public class LocalFileBodsServiceHelper implements BodsServiceHelper {
 
     private final BusRouteReader busRouteReader;
     private final Map<String, String> properties;
+
+    private final Map<String, List<BusInfo>> busInfoMap = Map.of("LTEA",
+            List.of(BusInfo.of("LTEA", "117"),
+            BusInfo.of("LTEA", "125"),
+            BusInfo.of("LTEA", "129")));
 
     public LocalFileBodsServiceHelper(FbisProperties properties, BusRouteReader busRouteReader) {
         this.properties = FbisProperties.propertyMap(properties);
@@ -68,6 +71,12 @@ public class LocalFileBodsServiceHelper implements BodsServiceHelper {
 
         return new ImmutablePair<>(busRouteBean.getLatitude().toPlainString(),
                 busRouteBean.getLongitude().toPlainString());
+    }
+
+    @Override
+    public List<BusInfo> fetchBusInfo(String operatorRef) {
+        Objects.requireNonNull(operatorRef, "Operator reference cannot be null");
+        return Optional.ofNullable(busInfoMap.get(operatorRef)).orElse(List.of());
     }
 
     private void initialiseRoute(String lineRef) {
