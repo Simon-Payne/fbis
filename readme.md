@@ -17,7 +17,7 @@ The service uses [OpenStreetMap](https://www.openstreetmap.org/) and [OpenLayers
 
 ### &TL;DR
 ```
-export API_KEY={BODS API key from https://data.bus-data.dft.gov.uk/}
+export BODS_API_KEY={BODS API key from https://data.bus-data.dft.gov.uk/}
 mvn spring-boot:run
 http://localhost:8080
 ```
@@ -54,9 +54,3 @@ A `demo` profile supplies hardcoded route data instead so is an option for offli
 ```
 mvn -Dspring-boot.run.jvmArguments="-Dspring.profiles.active=demo" spring-boot:run
 ```
-
-
-## For the curious
-*Flatshire* is a humorous name I often use to refer to Cambridgeshire as it is largely, um, flat.
-The example data used for the demo version of the service is drawn from the buses operated by
-the local bus company that serves our village.
