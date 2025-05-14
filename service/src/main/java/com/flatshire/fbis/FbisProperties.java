@@ -3,8 +3,6 @@ package com.flatshire.fbis;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
-
 @Configuration
 public class FbisProperties {
 
@@ -27,7 +25,7 @@ public class FbisProperties {
     private String operatorRef;
 
     @Value( "${line.refs}")
-    private List<String> lineRefs;
+    private String lineRefs;
 
     @Value( "${route.file.folder}")
     private String routeFileFolder;
@@ -60,7 +58,7 @@ public class FbisProperties {
         return operatorRef;
     }
 
-    public List<String> getLineRefs() {
+    public String getLineRefs() {
         return lineRefs;
     }
 

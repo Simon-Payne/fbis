@@ -8,10 +8,12 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.css.Counter;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,14 +38,17 @@ public class LocalFileBodsServiceHelper implements BodsServiceHelper {
     }
 
     public void initialiseRoutes() {
-        properties.getLineRefs().forEach(this::initialiseRoute);
+        if(properties.getLineRefs() != null) {
+            Arrays.stream(properties.getLineRefs().split(",")).forEach(this::initialiseRoute);
+        }
     }
 
     @Override
     public Pair<String, String> fetchData(String lineRef) {
         Objects.requireNonNull(lineRef, "Line Ref was null");
 
-        if (!properties.getLineRefs().contains(lineRef)) {
+        if (properties == null || properties.getLineRefs() == null
+                || !properties.getLineRefs().contains(lineRef)) {
             throw new IllegalArgumentException("Line Ref %s is not configured in this service"
                     .formatted(lineRef));
         }
