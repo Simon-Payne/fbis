@@ -29,7 +29,17 @@ public class ScheduledTasks {
     @Autowired
     public ScheduledTasks(BodsServiceImpl bodsService, SimpMessagingTemplate messagingTemplate) {
         this.bodsService = bodsService;
-        this.messagingTemplate = new SimpMessagingTemplate(messagingTemplate.getMessageChannel());
+        this.messagingTemplate = copyMessagingTemplate(messagingTemplate);
+    }
+
+    private SimpMessagingTemplate copyMessagingTemplate(SimpMessagingTemplate messagingTemplate) {
+        SimpMessagingTemplate copy = new SimpMessagingTemplate(messagingTemplate.getMessageChannel());
+        copy.setHeaderInitializer(messagingTemplate.getHeaderInitializer());
+        copy.setSendTimeout(messagingTemplate.getSendTimeout());
+        copy.setUserDestinationPrefix(messagingTemplate.getUserDestinationPrefix());
+        copy.setDefaultDestination(messagingTemplate.getDefaultDestination());
+        copy.setMessageConverter(messagingTemplate.getMessageConverter());
+        return copy;
     }
 
     @Scheduled(fixedRate = 10000)
