@@ -4,10 +4,13 @@ import com.flatshire.fbis.messages.BusPositionResponse;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaders;
@@ -17,6 +20,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -36,29 +42,39 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("inttest")
+@ExtendWith(SystemStubsExtension.class)
+@AutoConfigureMockMvc
 class FbisWebSocketControllerTest {
 
     private static final Logger log = LoggerFactory.getLogger(FbisWebSocketControllerTest.class);
 
-    @Value("${local.server.port}")
-    private int port;
+    @LocalServerPort
+    private Integer port;
 
     @Value("${push.notification.delay}")
     private Long pushNotificationDelay;
 
     private String URL;
 
+    @SystemStub
+    private EnvironmentVariables environment;
+
     private static final String TOPIC_ENDPOINT_123 = "/topic/buspos/123/";
     private static final String TOPIC_ENDPOINT_456 = "/topic/buspos/456/";
 
+    private static final String base64string = "Basic dXNlcjp1c2VyUGFzcw==";
+
     @BeforeEach
     public void beforeEach() {
-        URL = "ws://localhost:" + port + "/bus-location-feed";
+        URL = "wss://localhost:" + port + "/bus-location-feed";
+        System.setProperty("server.port", String.valueOf(port));
+        environment.set("FBIS_WEBSOCKET_URL", URL);
+        environment.set("SSL_CREDENTIAL", "sp1kypl4nt");
     }
 
     @Test
     void subscribeOneFeedShouldGetNotifications() throws InterruptedException {
-        WebSocketClient client = new StandardWebSocketClient();
+        WebSocketClient client = configureClientProperties();
         WebSocketStompClient stompClient = new WebSocketStompClient(client);
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
         BlockingQueue<BusPositionResponse> blockingQueue = new ArrayBlockingQueue<>(1);
@@ -75,7 +91,7 @@ class FbisWebSocketControllerTest {
 
     @Test
     void subscribeTwoFeedsShouldGetNotificationsFromBoth() {
-        WebSocketClient client = new StandardWebSocketClient();
+        WebSocketClient client = configureClientProperties();
         WebSocketStompClient stompClient = new WebSocketStompClient(client);
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
         BlockingQueue<BusPositionResponse> blockingQueue = new ArrayBlockingQueue<>(2);
@@ -93,7 +109,7 @@ class FbisWebSocketControllerTest {
 
     @Test
     void subscribeThenUnsubscribeShouldStopNotifications() throws InterruptedException, ExecutionException, TimeoutException {
-        WebSocketClient client = new StandardWebSocketClient();
+        WebSocketClient client = configureClientProperties();
         WebSocketStompClient stompClient = new WebSocketStompClient(client);
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
         BlockingQueue<BusPositionResponse> blockingQueue = new ArrayBlockingQueue<>(1);
@@ -115,6 +131,12 @@ class FbisWebSocketControllerTest {
         await()
                 .atMost((pushNotificationDelay * 3), MILLISECONDS)
                 .untilAsserted(() -> assertOneTopicMessaged(blockingQueue));
+    }
+
+    private static WebSocketClient configureClientProperties() {
+        StandardWebSocketClient client = new StandardWebSocketClient();
+        client.getUserProperties().put("Authorization", base64string);
+        return client;
     }
 
     private void assertOneTopicMessaged(BlockingQueue<BusPositionResponse> blockingQueue) {
