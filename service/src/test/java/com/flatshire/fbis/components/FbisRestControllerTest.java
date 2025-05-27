@@ -26,6 +26,7 @@ class FbisRestControllerTest {
     private BodsServiceImpl bodsService;
 
     @Test
+    @WithMockCustomUser
     void shouldHandleBadRequest() throws Exception {
         this.mockMvc.perform(MockMvcRequestBuilders.get("/operators/{operatorRef}/buses", "123")
                         .accept(MediaType.APPLICATION_JSON))
@@ -33,6 +34,7 @@ class FbisRestControllerTest {
     }
 
     @Test
+    @WithMockCustomUser
     void shouldGetOperatorBuses() throws Exception {
         String operatorRef = "ABCD";
         String bus1 = "1";
