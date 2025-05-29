@@ -2,7 +2,6 @@ package com.flatshire.fbis.components;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -34,23 +33,17 @@ public class SecurityConfig {
                 .password(passwordEncoder.encode("userPass"))
                 .roles("USER")
                 .build());
-        manager.createUser(User.withUsername("admin")
-                .password(passwordEncoder.encode("adminPass"))
-                .roles("USER", "ADMIN")
-                .build());
         return manager;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable) // TODO enable CSRF protection
+        http
+                .csrf(AbstractHttpConfigurer::disable) // TODO enable CSRF protection
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                         authorizationManagerRequestMatcherRegistry
-                                .requestMatchers(HttpMethod.DELETE).hasRole("ADMIN")
-                                .requestMatchers("/admin/**").hasAnyRole("ADMIN")
-                                .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
-                                .requestMatchers("/bus-location-feed/**").hasAnyRole("USER", "ADMIN")
-                                .requestMatchers("/login/**").permitAll()
+                                .requestMatchers("/bus-location-feed/**").hasAnyRole("USER")
+                                .requestMatchers("/login/**", "/favicon.ico").permitAll()
                                 .anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
@@ -60,6 +53,6 @@ public class SecurityConfig {
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        return web -> web.ignoring().requestMatchers("/css/**", "/js/**", "/img/**", "/lib/**", "/favicon.ico");
+        return web -> web.ignoring().requestMatchers("/css/**", "/js/**", "/img/**", "/lib/**");
     }
 }
