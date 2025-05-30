@@ -1,10 +1,10 @@
 package com.flatshire.fbis.components;
 
 import com.flatshire.fbis.messages.BusPositionResponse;
+import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,12 +20,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
-import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
-import uk.org.webcompere.systemstubs.jupiter.SystemStub;
-import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -42,7 +41,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("inttest")
-@ExtendWith(SystemStubsExtension.class)
 @AutoConfigureMockMvc
 class FbisWebSocketControllerTest {
 
@@ -54,22 +52,31 @@ class FbisWebSocketControllerTest {
     @Value("${push.notification.delay}")
     private Long pushNotificationDelay;
 
-    private String URL;
+    @Value("${test.user}")
+    private String testUser;
 
-    @SystemStub
-    private EnvironmentVariables environment;
+    @Value("${test.user.password}")
+    private String testUserPassword;
+
+    private String URL;
 
     private static final String TOPIC_ENDPOINT_123 = "/topic/buspos/123/";
     private static final String TOPIC_ENDPOINT_456 = "/topic/buspos/456/";
 
-    private static final String base64string = "Basic dXNlcjp1c2VyUGFzcw==";
+    private String base64string;
+
+    @PostConstruct
+    void postConstruct() {
+        String s = testUser + ":" + testUserPassword;
+        byte[] bytes = (s).getBytes(StandardCharsets.UTF_8);
+        String encoding = new String(Base64.getEncoder().encode(bytes), StandardCharsets.UTF_8);
+        base64string = "Basic %s".formatted(encoding);
+    }
 
     @BeforeEach
     public void beforeEach() {
         URL = "wss://localhost:" + port + "/bus-location-feed";
         System.setProperty("server.port", String.valueOf(port));
-        environment.set("FBIS_WEBSOCKET_URL", URL);
-        environment.set("SSL_CREDENTIAL", "sp1kypl4nt");
     }
 
     @Test
@@ -133,7 +140,7 @@ class FbisWebSocketControllerTest {
                 .untilAsserted(() -> assertOneTopicMessaged(blockingQueue));
     }
 
-    private static WebSocketClient configureClientProperties() {
+    private WebSocketClient configureClientProperties() {
         StandardWebSocketClient client = new StandardWebSocketClient();
         client.getUserProperties().put("Authorization", base64string);
         return client;
