@@ -54,3 +54,14 @@ A `demo` profile supplies hardcoded route data instead so is an option for offli
 ```
 mvn -Dspring-boot.run.jvmArguments="-Dspring.profiles.active=demo" spring-boot:run
 ```
+A `local` profile enables the server to be run standalone, managing its own SSL connection security.
+```
+mvn -Dspring-boot.run.jvmArguments="-Dspring.profiles.active=demo" spring-boot:run
+```
+A `heroku` profile is provided for running in a cloud hosted context. 
+
+### SSL Properties for standalone operation
+server.ssl.key-store = ${SSL_KEYSTORE}
+server.ssl.key-alias=${SSL_KEYSTORE_ALIAS}
+server.ssl.key-store-type=${SSL_KEYSTORE_TYPE}
+server.ssl.key-store-password=${SSL_KEYSTORE_CREDENTIAL}
