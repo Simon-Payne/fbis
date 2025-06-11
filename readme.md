@@ -18,7 +18,7 @@ The service uses [OpenStreetMap](https://www.openstreetmap.org/) and [OpenLayers
 ### &TL;DR
 ```
 export BODS_API_KEY={BODS API key from https://data.bus-data.dft.gov.uk/}
-mvn spring-boot:run
+mvn -Dwebsockets.scheme=ws spring-boot:run
 http://localhost:8080
 ```
 
