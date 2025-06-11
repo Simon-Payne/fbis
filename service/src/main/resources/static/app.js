@@ -1,5 +1,5 @@
 // token containing '_URL_SCHEME_' is string-replaced to either ws or wss, default is wss
-const scheme = 'wss' + '://'
+const scheme = '__URL_SCHEME__' + '://'
 const host = window.location.host
 const endpoint = '/bus-location-feed'
 console.log('brokerURL: ' + scheme + host + endpoint)
