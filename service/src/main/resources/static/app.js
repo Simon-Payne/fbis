@@ -1,5 +1,8 @@
+// token containing '_URL_SCHEME_' is string-replaced to either ws or wss, default is wss
+const scheme = 'wss' + '://'
 const host = window.location.host
-console.log('host: ' + host)
+const endpoint = '/bus-location-feed'
+console.log('brokerURL: ' + scheme + host + endpoint)
 const stompClient = new StompJs.Client({
     brokerURL: 'wss://' + host + '/bus-location-feed'
 });
