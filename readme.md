@@ -16,9 +16,10 @@ The service uses [OpenStreetMap](https://www.openstreetmap.org/) and [OpenLayers
 ## How to build the FBIS Service
 
 ### &TL;DR
+To run locally without SSL, change `scheme` value in `service/main/resources/app.js` to `ws://` and run in terminal:
 ```
 export BODS_API_KEY={BODS API key from https://data.bus-data.dft.gov.uk/}
-mvn -Dwebsockets.scheme=ws spring-boot:run
+mvn spring-boot:run
 http://localhost:8080
 ```
 

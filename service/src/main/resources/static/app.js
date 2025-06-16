@@ -1,5 +1,9 @@
-// token containing '_URL_SCHEME_' is string-replaced to either ws or wss, default is wss
-const scheme = '__URL_SCHEME__' + '://'
+// set scheme to either ws or wss as required.
+// Spring Boot auth.enabled property must be true if wss, false if ws.
+
+const scheme = 'wss://'
+
+// no need to change what's after this line
 const host = window.location.host
 const endpoint = '/bus-location-feed'
 console.log('brokerURL: ' + scheme + host + endpoint)
