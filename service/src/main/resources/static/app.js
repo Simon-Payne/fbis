@@ -4,7 +4,7 @@ const host = window.location.host
 const endpoint = '/bus-location-feed'
 console.log('brokerURL: ' + scheme + host + endpoint)
 const stompClient = new StompJs.Client({
-    brokerURL: 'wss://' + host + '/bus-location-feed'
+    brokerURL: scheme + host + '/bus-location-feed'
 });
 
 const subscriptionMap = new Map();

@@ -4,7 +4,6 @@ import com.flatshire.fbis.DataFeedServiceException;
 import com.flatshire.fbis.DataFeedServiceUnavailableException;
 import com.flatshire.fbis.FbisProperties;
 import com.flatshire.fbis.helpers.DataFeedBodsServiceHelper;
-import jakarta.xml.bind.JAXBElement;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
@@ -19,6 +18,9 @@ import org.springframework.web.client.RestTemplate;
 import uk.org.siri.siri21.*;
 
 import java.math.BigDecimal;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -26,6 +28,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -104,27 +107,64 @@ class DataFeedBodsServiceHelperTest {
         RestTemplate restTemplate = mock(RestTemplate.class);
         when(restTemplateBuilder.build()).thenReturn(restTemplate);
         when(restTemplate.getForObject(anyString(), eq(Siri.class))).thenReturn(dataset);
-        configureMockDataset();
+        configureMockDataset(1);
         DataFeedBodsServiceHelper objectUnderTest = new DataFeedBodsServiceHelper(properties, restTemplateBuilder);
         Pair<String, String> feedResponse = objectUnderTest.fetchData("1");
         assertThat(feedResponse, equalTo(new ImmutablePair<>("10", "10")));
     }
 
-    private void configureMockDataset() {
+    @Test
+    void shouldServiceRouteRequestWithTwoVehicleActivities() {
+        when(properties.getDataFeedUri()).thenReturn("data feed uri");
+        when(properties.getOperatorRef()).thenReturn("operator ref");
+        when(properties.getApiKey()).thenReturn("api key");
+        RestTemplate restTemplate = mock(RestTemplate.class);
+        when(restTemplateBuilder.build()).thenReturn(restTemplate);
+        when(restTemplate.getForObject(anyString(), eq(Siri.class))).thenReturn(dataset);
+        configureMockDataset(2);
+        DataFeedBodsServiceHelper objectUnderTest = new DataFeedBodsServiceHelper(properties, restTemplateBuilder);
+        Pair<String, String> feedResponse = objectUnderTest.fetchData("1");
+        assertThat(feedResponse, equalTo(new ImmutablePair<>("10", "11")));
+    }
+
+    private void configureMockDataset(int numVehicleActivitiesRequired) {
         ServiceDelivery mockServiceDelivery = mock(ServiceDelivery.class);
         when(dataset.getServiceDelivery()).thenReturn(mockServiceDelivery);
         VehicleMonitoringDeliveryStructure vehicleMonitoringDeliveryStructure =
                 mock(VehicleMonitoringDeliveryStructure.class);
+        when(mockServiceDelivery.getVehicleMonitoringDeliveries()).thenReturn(List.of(vehicleMonitoringDeliveryStructure));
+        List<VehicleActivityStructure> vehicleActivityStructures = mockVehicleActivities(numVehicleActivitiesRequired);
+        when(vehicleMonitoringDeliveryStructure.getVehicleActivities())
+                .thenReturn(vehicleActivityStructures);
+    }
+
+    private List<VehicleActivityStructure> mockVehicleActivities(int numRequired) {
+        if (numRequired == 1) {
+            return List.of(mockVehicleActivity(0));
+        } else {
+            List<VehicleActivityStructure> listOfMocks = new ArrayList<>();
+            int i = 0;
+            while (i++ < numRequired) {
+                VehicleActivityStructure vehicleActivityStructure = mockVehicleActivity(i);
+                ZonedDateTime zonedDateTime = ZonedDateTime.of(2000, 1, 1, 1, 1, 1, i, ZoneId.systemDefault());
+                when(vehicleActivityStructure.getRecordedAtTime()).thenReturn(zonedDateTime);
+                listOfMocks.add(vehicleActivityStructure);
+            }
+            return listOfMocks;
+        }
+    }
+
+    private static VehicleActivityStructure mockVehicleActivity(int index) {
         VehicleActivityStructure vehicleActivityStructure = mock(VehicleActivityStructure.class);
-        when(vehicleMonitoringDeliveryStructure.getVehicleActivities()).thenReturn(List.of(vehicleActivityStructure));
         VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney =
                 mock(VehicleActivityStructure.MonitoredVehicleJourney.class);
-        when(vehicleActivityStructure.getMonitoredVehicleJourney()).thenReturn(monitoredVehicleJourney);
+        lenient().when(vehicleActivityStructure.getMonitoredVehicleJourney()).thenReturn(monitoredVehicleJourney);
         LocationStructure vehicleLocation = mock(LocationStructure.class);
-        when(vehicleLocation.getLatitude()).thenReturn(BigDecimal.TEN);
-        when(vehicleLocation.getLongitude()).thenReturn(BigDecimal.TEN);
-        when(monitoredVehicleJourney.getVehicleLocation()).thenReturn(vehicleLocation);
-        when(mockServiceDelivery.getVehicleMonitoringDeliveries()).thenReturn(List.of(vehicleMonitoringDeliveryStructure));
+        lenient().when(vehicleLocation.getLatitude()).thenReturn(BigDecimal.TEN);
+        // return differentiated longitude values to enable test to assert correct behaviour
+        lenient().when(vehicleLocation.getLongitude()).thenReturn(new BigDecimal(10 + index));
+        lenient().when(monitoredVehicleJourney.getVehicleLocation()).thenReturn(vehicleLocation);
+        return vehicleActivityStructure;
     }
 
 }

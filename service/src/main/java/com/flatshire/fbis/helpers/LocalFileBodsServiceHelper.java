@@ -1,7 +1,6 @@
 package com.flatshire.fbis.helpers;
 
 import com.flatshire.fbis.FbisProperties;
-import com.flatshire.fbis.components.BodsServiceHelper;
 import com.flatshire.fbis.components.BusRouteReader;
 import com.flatshire.fbis.csv.BusRouteBean;
 import com.flatshire.fbis.domain.BusInfo;
@@ -50,8 +49,7 @@ public class LocalFileBodsServiceHelper implements BodsServiceHelper {
     public Pair<String, String> fetchData(String lineRef) {
         Objects.requireNonNull(lineRef, "Line Ref was null");
 
-        if (properties == null || properties.get("lineRefs") == null
-                || !properties.get("lineRefs").contains(lineRef)) {
+        if (!properties.containsKey("lineRefs") || !properties.get("lineRefs").contains(lineRef)) {
             throw new IllegalArgumentException("Line Ref %s is not configured in this service"
                     .formatted(lineRef));
         }

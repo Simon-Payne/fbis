@@ -1,4 +1,4 @@
-package com.flatshire.fbis.components;
+package com.flatshire.fbis.helpers;
 
 import com.flatshire.fbis.domain.BusInfo;
 import org.apache.commons.lang3.tuple.Pair;
