@@ -1,6 +1,7 @@
 package com.flatshire.fbis.components;
 
 import com.flatshire.fbis.messages.BusPositionResponse;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,10 +25,14 @@ public class FbisWebSocketController {
 
     public Pair<String, String> readFeedForLineRef(String lineRef) {
         Pair<String, String> dataFeed = bodsService.readPositionFromDataFeed(lineRef);
-        log.info("Datafeed bus {} - {}:{}",
-                lineRef,
-                dataFeed.getLeft(),
-                dataFeed.getRight());
+        if(!dataFeed.equals(ImmutablePair.nullPair())) {
+            log.info("Datafeed bus {} = {}:{}",
+                    lineRef,
+                    dataFeed.getLeft(),
+                    dataFeed.getRight());
+        } else {
+            log.trace("Datafeed bus {} is empty", lineRef);
+        }
         return dataFeed;
     }
 

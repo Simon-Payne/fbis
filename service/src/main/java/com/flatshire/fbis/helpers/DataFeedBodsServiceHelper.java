@@ -44,9 +44,10 @@ public class DataFeedBodsServiceHelper implements BodsServiceHelper {
             throw new IllegalStateException("API Key not supplied");
         }
 
-        String urlTemplate = String.format("%s?operatorRef=%s&api_key=%s",
+        String urlTemplate = String.format("%s?operatorRef=%s&lineRef=%s&api_key=%s",
                 properties.get("dataFeedUri"),
                 properties.get("operatorRef"),
+                lineRef,
                 TOKEN_PLACEHOLDER);
         log.info(urlTemplate);
 
@@ -57,7 +58,7 @@ public class DataFeedBodsServiceHelper implements BodsServiceHelper {
             if(dataset == null) {
                 throw new IllegalStateException("Dataset was null");
             }
-            return getCoordinatesFromDataset(dataset);
+            return getCoordinatesFromDataset(dataset, lineRef);
 
         } catch (HttpClientErrorException e) {
             if(e.getStatusCode().is5xxServerError()) {
@@ -77,19 +78,20 @@ public class DataFeedBodsServiceHelper implements BodsServiceHelper {
         return null;
     }
 
-    private static Pair<String, String> getCoordinatesFromDataset(Siri dataset) {
+    private static Pair<String, String> getCoordinatesFromDataset(Siri dataset, String lineRef) {
         ServiceDelivery serviceDelivery = dataset.getServiceDelivery();
         List<VehicleMonitoringDeliveryStructure> abstractFunctionalServiceDelivery =
                 serviceDelivery.getVehicleMonitoringDeliveries();
         return abstractFunctionalServiceDelivery.stream()
-                .findAny().map(vehicleMonitoring -> findCoords((VehicleMonitoringDeliveryStructure) vehicleMonitoring))
-                .orElseThrow();
+                .findAny().map(vehicleMonitoring -> findCoords((VehicleMonitoringDeliveryStructure) vehicleMonitoring, lineRef))
+                .orElse(ImmutablePair.nullPair());
     }
 
-    private static Pair<String, String> findCoords(VehicleMonitoringDeliveryStructure vehicleMonitoring) {
+    private static Pair<String, String> findCoords(VehicleMonitoringDeliveryStructure vehicleMonitoring, String lineRef) {
         List<VehicleActivityStructure> vehicleActivity = vehicleMonitoring.getVehicleActivities();
         if(vehicleActivity.isEmpty()) {
-            throw new IllegalStateException("No vehicle activity found");
+            log.debug("No vehicle activity found for lineRef {}", lineRef);
+            return ImmutablePair.nullPair();
         } else {
             // get last recorded vehicle activity entry in vehicleMonitoring list
             Comparator<VehicleActivityStructure> inReverseRecordedTimeOrder = (va, vb) -> Math.toIntExact(vb.getRecordedAtTime().toEpochSecond() - va.getRecordedAtTime().toEpochSecond());
