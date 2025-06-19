@@ -1,9 +1,9 @@
 package com.flatshire.fbis;
 
-import com.flatshire.fbis.components.BodsService;
-import com.flatshire.fbis.components.BodsServiceImpl;
-import com.flatshire.fbis.components.BusRouteReader;
-import org.apache.commons.lang3.tuple.Pair;
+import com.flatshire.fbis.service.BodsService;
+import com.flatshire.fbis.service.BodsServiceImpl;
+import com.flatshire.fbis.helpers.csv.BusRouteReader;
+import org.apache.commons.lang3.tuple.Triple;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,7 +13,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.web.client.RestTemplate;
+
+import java.time.LocalDateTime;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
@@ -39,7 +40,7 @@ class FbisApplicationTest {
 
     @Test
     void BodsServiceWorks() {
-		Pair<String, String> result = bodsService.readPositionFromDataFeed("1");
+		Triple<LocalDateTime, String, String> result = bodsService.readPositionFromDataFeed("1");
 		assertThat(result, notNullValue());
     }
 

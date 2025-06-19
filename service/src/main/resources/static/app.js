@@ -5,6 +5,7 @@ const scheme = 'wss://'
 
 // no need to change what's after this line
 const host = window.location.host
+var startDt = 0;
 const endpoint = '/bus-location-feed'
 console.log('brokerURL: ' + scheme + host + endpoint)
 const stompClient = new StompJs.Client({
@@ -57,9 +58,10 @@ function disconnect() {
 function subscribe(lineRef) {
     let subscription = stompClient.subscribe("/topic/buspos/" + lineRef + "/", (response) => {
         const posData = JSON.parse(response.body)
-        const msg = "Bus " + posData.lineRef + " is at position " + posData.latitude + ":" + posData.longitude
-        console.log(msg);
-        showBusPos(msg, posData);
+        const msgDisplay = "Bus " + posData.lineRef + " at " + posData.recordedTime + " is at position " + posData.latitude + ":" + posData.longitude
+        const msgLog = "\"Bus pos: " + posData.lineRef + "\",\"" + posData.recordedTime + "\"," + posData.latitude + "," + posData.longitude
+        console.log(msgLog);
+        showBusPos(msgDisplay, posData);
     });
     console.log("subscribed to lineRef " + lineRef + " subscription id " + subscription.id)
     subscriptionMap.set(lineRef, subscription.id)
@@ -71,7 +73,6 @@ function showBusPos(message, posData) {
     window.latitude = posData.latitude;
     window.longitude = posData.longitude;
     $.getScript("/map.js", function() {
-        console.log("Updating map latitude " + window.latitude + ", longitude " + window.longitude);
         updateMap(posData.lineRef, window.latitude, window.longitude);
     });
 }
@@ -80,6 +81,7 @@ function unsubscribe(lineRef, subscriptionId) {
     stompClient.unsubscribe(subscriptionId)
     console.log("unsubscribed from lineRef " + lineRef + " subscription id " + subscriptionId)
     subscriptionMap.delete(lineRef)
+    startDt = 0;
     $("#subscribe" + lineRef).css("background-color","white")
 }
 

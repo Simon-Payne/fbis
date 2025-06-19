@@ -1,17 +1,18 @@
 package com.flatshire.fbis.helpers;
 
 import com.flatshire.fbis.FbisProperties;
-import com.flatshire.fbis.components.BusRouteReader;
-import com.flatshire.fbis.csv.BusRouteBean;
+import com.flatshire.fbis.helpers.csv.BusRouteReader;
+import com.flatshire.fbis.helpers.csv.BusRouteBean;
 import com.flatshire.fbis.domain.BusInfo;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -46,7 +47,7 @@ public class LocalFileBodsServiceHelper implements BodsServiceHelper {
     }
 
     @Override
-    public Pair<String, String> fetchData(String lineRef) {
+    public Triple<LocalDateTime, String, String> fetchData(String lineRef) {
         Objects.requireNonNull(lineRef, "Line Ref was null");
 
         if (!properties.containsKey("lineRefs") || !properties.get("lineRefs").contains(lineRef)) {
@@ -67,7 +68,8 @@ public class LocalFileBodsServiceHelper implements BodsServiceHelper {
         log.debug("Line {} current counter {}", lineRef, nextCounter);
         BusRouteBean busRouteBean = routes.get(lineRef).get(nextCounter);
 
-        return new ImmutablePair<>(busRouteBean.getLatitude().toPlainString(),
+        return new ImmutableTriple<>(busRouteBean.getRecordedTime(),
+                busRouteBean.getLatitude().toPlainString(),
                 busRouteBean.getLongitude().toPlainString());
     }
 

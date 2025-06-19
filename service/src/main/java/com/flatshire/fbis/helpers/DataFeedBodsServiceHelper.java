@@ -4,8 +4,8 @@ import com.flatshire.fbis.DataFeedServiceException;
 import com.flatshire.fbis.DataFeedServiceUnavailableException;
 import com.flatshire.fbis.FbisProperties;
 import com.flatshire.fbis.domain.BusInfo;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -14,6 +14,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.org.siri.siri21.*;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +39,7 @@ public class DataFeedBodsServiceHelper implements BodsServiceHelper {
     }
 
     @Override
-    public Pair<String, String>  fetchData(String lineRef) throws DataFeedServiceUnavailableException {
+    public Triple<LocalDateTime, String, String> fetchData(String lineRef) throws DataFeedServiceUnavailableException {
         Objects.requireNonNull(lineRef, "Line Ref was null");
         if(properties.get(API_KEY) == null) {
             throw new IllegalStateException("API Key not supplied");
@@ -78,27 +79,30 @@ public class DataFeedBodsServiceHelper implements BodsServiceHelper {
         return null;
     }
 
-    private static Pair<String, String> getCoordinatesFromDataset(Siri dataset, String lineRef) {
+    private static Triple<LocalDateTime, String, String> getCoordinatesFromDataset(Siri dataset, String lineRef) {
         ServiceDelivery serviceDelivery = dataset.getServiceDelivery();
         List<VehicleMonitoringDeliveryStructure> abstractFunctionalServiceDelivery =
                 serviceDelivery.getVehicleMonitoringDeliveries();
         return abstractFunctionalServiceDelivery.stream()
                 .findAny().map(vehicleMonitoring -> findCoords((VehicleMonitoringDeliveryStructure) vehicleMonitoring, lineRef))
-                .orElse(ImmutablePair.nullPair());
+                .orElse(ImmutableTriple.nullTriple());
     }
 
-    private static Pair<String, String> findCoords(VehicleMonitoringDeliveryStructure vehicleMonitoring, String lineRef) {
+    private static Triple<LocalDateTime, String, String> findCoords(VehicleMonitoringDeliveryStructure vehicleMonitoring, String lineRef) {
         List<VehicleActivityStructure> vehicleActivity = vehicleMonitoring.getVehicleActivities();
         if(vehicleActivity.isEmpty()) {
             log.debug("No vehicle activity found for lineRef {}", lineRef);
-            return ImmutablePair.nullPair();
+            return ImmutableTriple.nullTriple();
         } else {
             // get last recorded vehicle activity entry in vehicleMonitoring list
             Comparator<VehicleActivityStructure> inReverseRecordedTimeOrder = (va, vb) -> Math.toIntExact(vb.getRecordedAtTime().toEpochSecond() - va.getRecordedAtTime().toEpochSecond());
             Stream<VehicleActivityStructure> vehicleActivities = vehicleActivity.stream().sorted(inReverseRecordedTimeOrder);
-            VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = vehicleActivities.toList().get(0).getMonitoredVehicleJourney();
+            VehicleActivityStructure lastVehicleActivity = vehicleActivities.toList().get(0);
+            VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = lastVehicleActivity.getMonitoredVehicleJourney();
             LocationStructure vehicleLocation = monitoredVehicleJourney.getVehicleLocation();
-            return new ImmutablePair<>(vehicleLocation.getLatitude().toPlainString(),
+            return new ImmutableTriple<>(
+                    lastVehicleActivity.getRecordedAtTime().toLocalDateTime(),
+                    vehicleLocation.getLatitude().toPlainString(),
                     vehicleLocation.getLongitude().toPlainString());
         }
     }

@@ -5,7 +5,7 @@ function updateMap(lineRef, latitude, longitude) {
     colorMap['125'] = 'red';
     colorMap['129'] = 'green';
 
-    console.log('colorMap for line 125 = ' + colorMap[lineRef]);
+    //console.debug('colorMap for line 125 = ' + colorMap[lineRef]);
 
     const centerProj = ol.proj.fromLonLat(["0.250479", "52.410062"])
 
@@ -37,7 +37,7 @@ function updateMap(lineRef, latitude, longitude) {
         //view.setCenter(ol.proj.fromLonLat([longitude, latitude]));
         map.getLayers().forEach(function(layer) {
             if(layer instanceof ol.layer.Vector) {
-                console.log("forcing refresh of vector layer")
+                //console.debug("forcing refresh of vector layer")
                 layer.getSource().clear();
                 layer.getSource().addFeatures(features);
             }
