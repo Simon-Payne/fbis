@@ -1,5 +1,6 @@
 package com.flatshire.fbis.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flatshire.fbis.messages.BusPositionResponse;
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -7,11 +8,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
@@ -58,6 +61,11 @@ class FbisWebSocketControllerTest {
     @Value("${test.user.password}")
     private String testUserPassword;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    private MessageConverter messageConverter;
+
     private String URL;
 
     private static final String TOPIC_ENDPOINT_123 = "/topic/buspos/123/";
@@ -71,6 +79,7 @@ class FbisWebSocketControllerTest {
         byte[] bytes = (s).getBytes(StandardCharsets.UTF_8);
         String encoding = new String(Base64.getEncoder().encode(bytes), StandardCharsets.UTF_8);
         base64string = "Basic %s".formatted(encoding);
+        messageConverter = new MappingJackson2MessageConverter(objectMapper);
     }
 
     @BeforeEach
@@ -83,7 +92,7 @@ class FbisWebSocketControllerTest {
     void subscribeOneFeedShouldGetNotifications() throws InterruptedException {
         WebSocketClient client = configureClientProperties();
         WebSocketStompClient stompClient = new WebSocketStompClient(client);
-        stompClient.setMessageConverter(new MappingJackson2MessageConverter());
+        stompClient.setMessageConverter(messageConverter);
         BlockingQueue<BusPositionResponse> blockingQueue = new ArrayBlockingQueue<>(1);
         CompletableFuture<StompSession> connecting = stompClient.connectAsync(URL, new StompSessionHandlerAdapter() {
         });
@@ -100,7 +109,7 @@ class FbisWebSocketControllerTest {
     void subscribeTwoFeedsShouldGetNotificationsFromBoth() {
         WebSocketClient client = configureClientProperties();
         WebSocketStompClient stompClient = new WebSocketStompClient(client);
-        stompClient.setMessageConverter(new MappingJackson2MessageConverter());
+        stompClient.setMessageConverter(messageConverter);
         BlockingQueue<BusPositionResponse> blockingQueue = new ArrayBlockingQueue<>(2);
         CompletableFuture<StompSession> connecting = stompClient.connectAsync(URL, new StompSessionHandlerAdapter() {
         });
@@ -118,7 +127,7 @@ class FbisWebSocketControllerTest {
     void subscribeThenUnsubscribeShouldStopNotifications() throws InterruptedException, ExecutionException, TimeoutException {
         WebSocketClient client = configureClientProperties();
         WebSocketStompClient stompClient = new WebSocketStompClient(client);
-        stompClient.setMessageConverter(new MappingJackson2MessageConverter());
+        stompClient.setMessageConverter(messageConverter);
         BlockingQueue<BusPositionResponse> blockingQueue = new ArrayBlockingQueue<>(1);
         CompletableFuture<StompSession> connecting = stompClient.connectAsync(URL, new StompSessionHandlerAdapter() {
         });

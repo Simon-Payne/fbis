@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
 @TestConfiguration
-public class FbisTestConfiguration {
+public class FbisTestConfig {
 
     @Bean
     @Primary

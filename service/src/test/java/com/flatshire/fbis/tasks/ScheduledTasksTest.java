@@ -39,8 +39,8 @@ class ScheduledTasksTest {
 
     private ScheduledTasks objectUnderTest;
 
-    private static final ImmutableTriple<LocalDateTime, String, String> pair123 = ImmutableTriple.of(LocalDateTime.of(LocalDate.of(2025, 6, 1), LocalTime.of(10, 30, 0, 0)), "1234567890.1", "2345678901.2");
-    private static final ImmutableTriple<LocalDateTime, String, String> pair456 = ImmutableTriple.of(LocalDateTime.of(LocalDate.of(2025, 6, 1), LocalTime.of(10, 35, 0, 0)), "4234567890.1", "4345678901.2");
+    private static final Triple<LocalDateTime, String, String> pair123 = ImmutableTriple.of(LocalDateTime.of(LocalDate.of(2025, 6, 1), LocalTime.of(10, 30, 0, 0)), "1234567890.1", "2345678901.2");
+    private static final Triple<LocalDateTime, String, String> pair456 = ImmutableTriple.of(LocalDateTime.of(LocalDate.of(2025, 6, 1), LocalTime.of(10, 35, 0, 0)), "4234567890.1", "4345678901.2");
 
     @Test
     void givenLineRefStringShouldReadDataFeedsForEachValue() {
