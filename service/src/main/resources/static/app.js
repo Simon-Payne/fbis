@@ -11,6 +11,26 @@ console.log('brokerURL: ' + scheme + host + endpoint)
 const stompClient = new StompJs.Client({
     brokerURL: scheme + host + '/bus-location-feed'
 });
+const dateTimeOptionsDisplay = {
+  weekday: "long",
+  hour: "numeric",
+  minute: "numeric",
+  timeZone: "Europe/London",
+  hour12: true
+}
+const dateTimeOptionsLog = {
+  year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+    hour12: false,
+    timeZone: "Europe/London",
+    timeZoneName: "short"
+}
+const dateFormatDisplay = new Intl.DateTimeFormat("en-GB", dateTimeOptionsDisplay)
+const dateFormatLog = new Intl.DateTimeFormat("en-GB", dateTimeOptionsLog)
 
 const subscriptionMap = new Map();
 
@@ -58,8 +78,12 @@ function disconnect() {
 function subscribe(lineRef) {
     let subscription = stompClient.subscribe("/topic/buspos/" + lineRef + "/", (response) => {
         const posData = JSON.parse(response.body)
-        const msgDisplay = "Bus " + posData.lineRef + " at " + posData.recordedTime + " is at position " + posData.latitude + ":" + posData.longitude
-        const msgLog = "\"Bus pos: " + posData.lineRef + "\",\"" + posData.recordedTime + "\"," + posData.latitude + "," + posData.longitude
+        var d = posData.recordedTime
+        const recordedTime = new Date(d[0], d[1]-1, d[2], d[3], d[4])
+        const recordedTimeDisplay = dateFormatDisplay.format(recordedTime)
+        const msgDisplay = recordedTimeDisplay + " bus " + posData.lineRef + " position " + posData.latitude + ":" + posData.longitude
+        const recordedTimeLog = dateFormatLog.format(recordedTime)
+        const msgLog = "\"Bus pos: " + posData.lineRef + "\",\"" + recordedTimeLog + "\"," + posData.latitude + "," + posData.longitude
         console.log(msgLog);
         showBusPos(msgDisplay, posData);
     });
