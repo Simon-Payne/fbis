@@ -57,7 +57,7 @@ public class DataFeedBodsServiceHelper implements BodsServiceHelper {
             dataset = restTemplate.getForObject(urlTemplate
                     .replace(TOKEN_PLACEHOLDER, properties.get(API_KEY)), Siri.class);
             if(dataset == null) {
-                throw new IllegalStateException("Dataset was null");
+                throw new DataFeedServiceException(new IllegalStateException("Dataset returned from feed was null"));
             }
             return getCoordinatesFromDataset(dataset, lineRef);
 

@@ -72,6 +72,21 @@ class DataFeedBodsServiceHelperTest {
     }
 
     @Test
+    void shouldHandleRest500() {
+        when(properties.getDataFeedUri()).thenReturn("data feed uri");
+        when(properties.getOperatorRef()).thenReturn("operator ref");
+        when(properties.getApiKey()).thenReturn("api key");
+        RestTemplate restTemplate = mock(RestTemplate.class);
+        when(restTemplateBuilder.build()).thenReturn(restTemplate);
+        when(restTemplate.getForObject(anyString(), eq(Siri.class)))
+                .thenThrow(new HttpClientErrorException(HttpStatusCode.valueOf(500)));
+        DataFeedBodsServiceHelper objectUnderTest = new DataFeedBodsServiceHelper(properties, restTemplateBuilder);
+        DataFeedServiceUnavailableException exception = assertThrows(DataFeedServiceUnavailableException.class,
+                () -> objectUnderTest.fetchData("some line ref"));
+        assertThat(exception.getMessage(), equalTo("Service unavailable, advice was \"500 INTERNAL_SERVER_ERROR\""));
+    }
+
+    @Test
     void shouldHandleRest404() {
         when(properties.getDataFeedUri()).thenReturn("data feed uri");
         when(properties.getOperatorRef()).thenReturn("operator ref");
@@ -87,7 +102,7 @@ class DataFeedBodsServiceHelperTest {
     }
 
     @Test
-    void shouldHandleWhenDataFeedThrowsArbitraryException() {
+    void shouldHandleCaseWhenDataFeedThrowsArbitraryException() {
         when(properties.getDataFeedUri()).thenReturn("data feed uri");
         when(properties.getOperatorRef()).thenReturn("operator ref");
         when(properties.getApiKey()).thenReturn("api key");
@@ -100,6 +115,33 @@ class DataFeedBodsServiceHelperTest {
                 () -> objectUnderTest.fetchData("1"));
         assertThat(exception.getMessage(),
                 equalTo("Service unavailable, advice was \"Data Feed is down\""));
+    }
+
+    @Test
+    void shouldHandleCaseWhenFeedReturnsNullDataset() {
+        when(properties.getDataFeedUri()).thenReturn("data feed uri");
+        when(properties.getOperatorRef()).thenReturn("operator ref");
+        when(properties.getApiKey()).thenReturn("api key");
+        RestTemplate restTemplate = mock(RestTemplate.class);
+        when(restTemplateBuilder.build()).thenReturn(restTemplate);
+        when(restTemplate.getForObject(anyString(), eq(Siri.class))).thenReturn(null);
+        DataFeedBodsServiceHelper objectUnderTest = new DataFeedBodsServiceHelper(properties, restTemplateBuilder);
+        DataFeedServiceException exception = assertThrows(DataFeedServiceException.class, () -> objectUnderTest.fetchData("1"));
+        assertThat(exception.getMessage(), equalTo("Service error, cause was \"Dataset returned from feed was null\""));
+    }
+
+    @Test
+    void shouldHandleValidRouteRequestWhenNoVehicleActivitiesAreReturned() {
+        when(properties.getDataFeedUri()).thenReturn("data feed uri");
+        when(properties.getOperatorRef()).thenReturn("operator ref");
+        when(properties.getApiKey()).thenReturn("api key");
+        RestTemplate restTemplate = mock(RestTemplate.class);
+        when(restTemplateBuilder.build()).thenReturn(restTemplate);
+        when(restTemplate.getForObject(anyString(), eq(Siri.class))).thenReturn(dataset);
+        configureMockDataset(0);
+        DataFeedBodsServiceHelper objectUnderTest = new DataFeedBodsServiceHelper(properties, restTemplateBuilder);
+        Triple<LocalDateTime, String, String> feedResponse = objectUnderTest.fetchData("1");
+        assertThat(feedResponse, equalTo(ImmutableTriple.nullTriple()));
     }
 
     @Test

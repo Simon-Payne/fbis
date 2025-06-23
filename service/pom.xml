@@ -135,7 +135,7 @@
 						</goals>
 					</execution>
 					<execution>
-						<id>report</id>
+						<id>check</id>
 						<phase>prepare-package</phase>
 						<goals>
 							<goal>check</goal>
@@ -159,6 +159,13 @@
 								</rule>
 							</rules>
 						</configuration>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
 					</execution>
 				</executions>
 			</plugin>
